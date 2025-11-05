@@ -26,14 +26,15 @@ def create_student_folders(csv_path):
     base_dir = Path(f"data/{course_code}")
     base_dir.mkdir(parents=True, exist_ok=True)
     
-    # Get active students - fix the filtering logic
+    # Get active students - FIXED filtering logic
     print(f"📊 Total rows in CSV: {len(df)}")
     print(f"📊 Username column sample: {df['Username'].head().tolist()}")
     
     # Filter out rows with empty usernames or demo accounts
+    # Remove the requirement for # prefix since your data doesn't have it
     students = df[
         df['Username'].notna() & 
-        df['Username'].str.startswith('#') & 
+        (df['Username'].str.len() > 0) &
         ~df['Username'].str.contains('demo', case=False, na=False)
     ]
     
@@ -42,14 +43,20 @@ def create_student_folders(csv_path):
     created_folders = []
     
     for _, student in students.iterrows():
-        username = student['Username'].replace('#', '')  # Remove the # prefix
+        # Remove # if it exists, otherwise use username as-is
+        username = str(student['Username']).replace('#', '').strip()
         first_name = str(student['First Name']).strip()
         last_name = str(student['Last Name']).strip()
         email = str(student['Email']).strip()
         
-        # Skip if essential data is missing
-        if not username or first_name == 'nan' or last_name == 'nan':
-            print(f"⚠️ Skipping student with missing data: {username}")
+        # Skip if essential data is missing or is NaN
+        if not username or first_name == 'nan' or last_name == 'nan' or email == 'nan':
+            print(f"⚠️ Skipping student with missing data: {username} - {first_name} {last_name}")
+            continue
+        
+        # Skip demo/test accounts
+        if 'demo' in username.lower() or 'test' in username.lower():
+            print(f"⚠️ Skipping demo/test account: {username}")
             continue
         
         print(f"🔄 Processing: {first_name} {last_name} ({username})")
@@ -145,6 +152,7 @@ semester: Spring 2025
             
             with open(profile_path, 'w', encoding='utf-8') as f:
                 f.write(profile_content)
+            print(f"  📝 Created profile.md for {username}")
         
         # Create README.md for the folder
         readme_path = student_dir / "README.md"
@@ -183,6 +191,7 @@ Course: {course_code.upper()} | Semester: Spring 2025 | Student: {username}
             
             with open(readme_path, 'w', encoding='utf-8') as f:
                 f.write(readme_content)
+            print(f"  📄 Created README.md for {username}")
         
         created_folders.append(f"{course_code}/{username}")
         print(f"✅ Created folder for {first_name} {last_name} ({username})")
@@ -198,11 +207,12 @@ This directory contains student portfolio folders for the {course_code.upper()} 
 """
     
     for _, student in students.iterrows():
-        username = student['Username'].replace('#', '')
+        username = str(student['Username']).replace('#', '').strip()
         first_name = str(student['First Name']).strip()
         last_name = str(student['Last Name']).strip()
         
-        if username and first_name != 'nan' and last_name != 'nan':
+        if (username and first_name != 'nan' and last_name != 'nan' 
+            and 'demo' not in username.lower() and 'test' not in username.lower()):
             course_readme_content += f"- [{first_name} {last_name}](./{username}/) (`{username}`)\n"
     
     course_readme_content += f"""
@@ -223,6 +233,7 @@ Each student folder contains:
 - Use standard formats (JPG/PNG for images, PDF for documents)
 
 Generated from: `{os.path.basename(csv_path)}`
+Last updated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
     
     with open(course_readme, 'w', encoding='utf-8') as f:
