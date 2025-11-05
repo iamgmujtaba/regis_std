@@ -26,21 +26,34 @@ def create_student_folders(csv_path):
     base_dir = Path(f"data/{course_code}")
     base_dir.mkdir(parents=True, exist_ok=True)
     
-    # Get active students (those with usernames starting with #)
-    students = df[df['Username'].str.startswith('#', na=False)]
+    # Get active students - fix the filtering logic
+    print(f"📊 Total rows in CSV: {len(df)}")
+    print(f"📊 Username column sample: {df['Username'].head().tolist()}")
+    
+    # Filter out rows with empty usernames or demo accounts
+    students = df[
+        df['Username'].notna() & 
+        df['Username'].str.startswith('#') & 
+        ~df['Username'].str.contains('demo', case=False, na=False)
+    ]
+    
+    print(f"📊 Filtered students: {len(students)}")
     
     created_folders = []
     
     for _, student in students.iterrows():
-        username = student['Username'].replace('#', '')
-        first_name = student['First Name']
-        last_name = student['Last Name']
-        email = student['Email']
+        username = student['Username'].replace('#', '')  # Remove the # prefix
+        first_name = str(student['First Name']).strip()
+        last_name = str(student['Last Name']).strip()
+        email = str(student['Email']).strip()
         
-        # Skip demo/test accounts
-        if 'demo' in username.lower() or 'test' in username.lower():
+        # Skip if essential data is missing
+        if not username or first_name == 'nan' or last_name == 'nan':
+            print(f"⚠️ Skipping student with missing data: {username}")
             continue
-            
+        
+        print(f"🔄 Processing: {first_name} {last_name} ({username})")
+        
         # Create student folder
         student_dir = base_dir / username
         student_dir.mkdir(exist_ok=True)
@@ -94,8 +107,8 @@ semester: Spring 2025
 
 **Links:**
 - [GitHub Repository](#)
-- [Project Report](project_report.pdf)
-- [Presentation Slides](presentation.pdf)
+- [Project Report](project1_report.pdf)
+- [Presentation Slides](project1_slides.pdf)
 
 ## Practicum II Project
 
@@ -116,8 +129,8 @@ semester: Spring 2025
 
 **Links:**
 - [GitHub Repository](#)
-- [Project Report](project_report.pdf)
-- [Presentation Slides](presentation.pdf)
+- [Project Report](project2_report.pdf)
+- [Presentation Slides](project2_slides.pdf)
 
 ## Contact Information
 
@@ -186,13 +199,14 @@ This directory contains student portfolio folders for the {course_code.upper()} 
     
     for _, student in students.iterrows():
         username = student['Username'].replace('#', '')
-        first_name = student['First Name']
-        last_name = student['Last Name']
+        first_name = str(student['First Name']).strip()
+        last_name = str(student['Last Name']).strip()
         
-        if 'demo' not in username.lower() and 'test' not in username.lower():
+        if username and first_name != 'nan' and last_name != 'nan':
             course_readme_content += f"- [{first_name} {last_name}](./{username}/) (`{username}`)\n"
     
     course_readme_content += f"""
+
 ## Structure
 
 Each student folder contains:
@@ -217,6 +231,7 @@ Generated from: `{os.path.basename(csv_path)}`
     print(f"\n📊 Summary:")
     print(f"Course: {course_code.upper()}")
     print(f"Created {len(created_folders)} student folders")
+    print(f"Students: {', '.join([folder.split('/')[-1] for folder in created_folders])}")
     print(f"CSV: {csv_path}")
     
     return created_folders

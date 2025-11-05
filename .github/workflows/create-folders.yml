@@ -8,8 +8,12 @@ on:
     inputs:
       csv_path:
         description: 'Path to CSV file (e.g., data/MSDS696_S71_Data Science Practicum II_GradesExport_2025-11-05-18-14.csv)'
-        required: true
+        required: false
         type: string
+
+permissions:
+  contents: write
+  actions: read
 
 jobs:
   create-folders:
@@ -43,6 +47,6 @@ jobs:
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
-          git commit -m "Auto-create student folders from CSV"
+          git commit -m "Auto-create student folders from CSV - $(date)"
           git push
         fi
