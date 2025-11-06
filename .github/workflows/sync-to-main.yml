@@ -52,6 +52,9 @@ jobs:
       run: |
         echo "🖼️  Starting image optimization..."
         
+        # Initialize counter
+        image_count=0
+        
         # Function to optimize images
         optimize_image() {
           local input_file="$1"
@@ -89,16 +92,21 @@ jobs:
             # Keep original for now (students might reference it)
             # Optionally: rm "$input_file" to remove original
           fi
+          
+          return 0
         }
         
-        # Find and process all images
-        image_count=0
-        find data/ -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" \) | while read -r file; do
-          optimize_image "$file"
-          ((image_count++))
-        done
-        
-        echo "📊 Processed $image_count images"
+        # Find and process all images - fixed the loop issue
+        if find data/ -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" \) -print0 | grep -zq .; then
+          while IFS= read -r -d '' file; do
+            optimize_image "$file"
+            image_count=$((image_count + 1))
+          done < <(find data/ -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" \) -print0)
+          
+          echo "📊 Successfully processed $image_count images"
+        else
+          echo "📷 No images found to optimize"
+        fi
         
     - name: Commit optimized images
       run: |
@@ -156,9 +164,11 @@ jobs:
         # Check if semester data file exists
         if [ -f "main-portfolio/data/students_msds696_s71.json" ]; then
           echo "✅ Semester data file created"
-          # Show student count
-          student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
-          echo "📊 Processed $student_count students"
+          # Show student count (only if jq is available)
+          if command -v jq >/dev/null 2>&1; then
+            student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
+            echo "📊 Processed $student_count students"
+          fi
         else
           echo "⚠️ Semester data file not found"
         fi
@@ -170,8 +180,8 @@ jobs:
         git config --local user.name "GitHub Action - Portfolio Sync"
         
         # Add all generated files
-        git add profiles/
-        git add data/
+        git add profiles/ || true
+        git add data/ || true
         
         # Check if there are changes to commit
         if git diff --staged --quiet; then
@@ -179,7 +189,11 @@ jobs:
         else
           # Get some stats for the commit message
           if [ -f "data/students_msds696_s71.json" ]; then
-            student_count=$(jq '.students | length' data/students_msds696_s71.json 2>/dev/null || echo "unknown")
+            if command -v jq >/dev/null 2>&1; then
+              student_count=$(jq '.students | length' data/students_msds696_s71.json 2>/dev/null || echo "unknown")
+            else
+              student_count="unknown"
+            fi
             commit_msg="🎓 Auto-sync: Updated $student_count student profiles - $(date +'%Y-%m-%d %H:%M UTC')"
           else
             commit_msg="🎓 Auto-sync: Updated student data - $(date +'%Y-%m-%d %H:%M UTC')"
@@ -191,7 +205,7 @@ jobs:
           
           # Show what was updated
           echo "📊 Update summary:"
-          git show --stat HEAD~1..HEAD
+          git show --stat HEAD~1..HEAD || echo "Unable to show stats"
         fi
         
     - name: Generate summary report
@@ -202,12 +216,16 @@ jobs:
         
         # Count students processed
         if [ -f "main-portfolio/data/students_msds696_s71.json" ]; then
-          student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
-          echo "👥 Students processed: $student_count"
-          
-          # List students
-          echo "📋 Student list:"
-          jq -r '.students[] | "  - " + .name + " (" + .username + ")"' main-portfolio/data/students_msds696_s71.json | sort
+          if command -v jq >/dev/null 2>&1; then
+            student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
+            echo "👥 Students processed: $student_count"
+            
+            # List students
+            echo "📋 Student list:"
+            jq -r '.students[] | "  - " + .name + " (" + .username + ")"' main-portfolio/data/students_msds696_s71.json | sort
+          else
+            echo "👥 Students processed: (jq not available for count)"
+          fi
         fi
         
         echo ""
