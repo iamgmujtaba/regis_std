@@ -42,6 +42,14 @@ jobs:
           echo "✅ PAT_TOKEN secret found"
         fi
         
+    - name: Cache apt packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-${{ hashFiles('**/workflows/sync-to-main.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-
+          
     - name: Install image optimization tools
       run: |
         sudo apt-get update
@@ -130,9 +138,18 @@ jobs:
         path: 'main-portfolio'
         
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
+        cache: 'pip'
+        
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/setup.py', '**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
         
     - name: Install Python dependencies
       run: |
