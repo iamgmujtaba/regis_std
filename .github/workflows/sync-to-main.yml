@@ -1,7 +1,7 @@
 name: Sync Student Data to Main Portfolio
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch:  # Manual trigger
   push:
     branches: [ main ]
     paths:
@@ -16,13 +16,20 @@ permissions:
 jobs:
   sync-to-main:
     runs-on: ubuntu-latest
-    # Only run if PAT_TOKEN is available
-    if: ${{ secrets.PAT_TOKEN != '' }}
     
     steps:
     - name: Checkout regis_std repository
       uses: actions/checkout@v4
       
+    - name: Check if PAT_TOKEN exists
+      run: |
+        if [ -z "${{ secrets.PAT_TOKEN }}" ]; then
+          echo "❌ PAT_TOKEN secret not found"
+          exit 1
+        else
+          echo "✅ PAT_TOKEN secret found"
+        fi
+        
     - name: Checkout main portfolio repository
       uses: actions/checkout@v4
       with:
@@ -56,16 +63,3 @@ jobs:
           git commit -m "Auto-sync student data from regis_std - $(date)"
           git push
         fi
-
-  # Fallback job if no PAT_TOKEN
-  notify-no-token:
-    runs-on: ubuntu-latest
-    if: ${{ secrets.PAT_TOKEN == '' }}
-    steps:
-    - name: Notify missing token
-      run: |
-        echo "⚠️  PAT_TOKEN secret not found. Sync workflow skipped."
-        echo "To enable automatic syncing:"
-        echo "1. Create a Personal Access Token with 'repo' and 'workflow' permissions"
-        echo "2. Add it as 'PAT_TOKEN' repository secret"
-        echo "3. Re-run this workflow"
