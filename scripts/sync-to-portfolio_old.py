@@ -215,8 +215,6 @@ def create_html_page(student_data, course_code, target_dir):
     with open(html_file, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print(f"    🌐 Created HTML page: profiles/{username}.html")
-    
     # Return simple path
     return f'profiles/{username}.html'
 
@@ -309,6 +307,7 @@ def sync_student_data():
                 # Create HTML page for this student
                 html_path = create_html_page(student_data, course_code, target_dir)
                 student_data['profilePage'] = html_path
+                print(f"    🌐 Created HTML page: {html_path}")
                 
                 course_students.append(student_data)
                 print(f"    ✅ Processed {student_data['name']} ({username})")
@@ -333,10 +332,10 @@ def sync_student_data():
                 'website': 'https://www.regis.edu'
             },
             'students': course_students,
-            'spotlight': [],
+            'spotlight': [],  # Can be populated later
             'statistics': {
                 'totalStudents': len(course_students),
-                'totalProjects': len(course_students) * 2,
+                'totalProjects': len(course_students) * 2,  # Assuming 2 projects per student
                 'lastUpdated': datetime.now().isoformat()
             },
             'metadata': {
@@ -352,6 +351,44 @@ def sync_student_data():
         
         print(f"📊 Created {course_code} data file with {len(course_students)} students")
         print(f"📁 Saved: {semester_json_path}")
+        
+        # Update main students.json to reference the new semester
+        main_students_json = target_dir / 'data' / 'students.json'
+        if main_students_json.exists():
+            with open(main_students_json, 'r', encoding='utf-8') as f:
+                main_data = json.load(f)
+        else:
+            main_data = {
+                'university': {
+                    'name': 'Regis University',
+                    'phone': '(800) 388-2366',
+                    'address': '3333 Regis Blvd, Denver, CO 80221',
+                    'website': 'https://www.regis.edu'
+                },
+                'currentSemester': 'spring-2025',
+                'semesters': {},
+                'spotlightProjects': []
+            }
+        
+        # Add/update semester reference in main file
+        semester_key = course_code.replace('_', '-')
+        main_data['semesters'][semester_key] = {
+            'name': f'Spring 2025 - {course_code.upper()}',
+            'course': course_code.upper(),
+            'students': course_students,
+            'dataFile': f'data/students_{course_code}.json',
+            'htmlPath': 'profiles/',
+            'spotlight': []
+        }
+        
+        # Update current semester if this is the most recent
+        main_data['currentSemester'] = semester_key
+        
+        # Write updated main students.json
+        with open(main_students_json, 'w', encoding='utf-8') as f:
+            json.dump(main_data, f, indent=2, ensure_ascii=False)
+        
+        print(f"📊 Updated main students.json with {course_code} reference")
 
     print(f"✅ Sync completed successfully!")
 
