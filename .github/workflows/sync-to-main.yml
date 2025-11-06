@@ -1,17 +1,26 @@
 name: Sync Student Data to Main Portfolio
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Force rebuild all profiles'
+        required: false
+        default: 'false'
+        type: boolean
   push:
     branches: [ main ]
     paths:
       - 'data/**/*.md'
       - 'data/**/*.jpg'
+      - 'data/**/*.jpeg'
       - 'data/**/*.png'
+      - 'data/**/*.webp'
       - 'data/**/*.pdf'
+      - 'scripts/**/*.py'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   sync-to-main:
@@ -20,14 +29,89 @@ jobs:
     steps:
     - name: Checkout regis_std repository
       uses: actions/checkout@v4
-      
+      with:
+        fetch-depth: 0
+        
     - name: Check if PAT_TOKEN exists
       run: |
         if [ -z "${{ secrets.PAT_TOKEN }}" ]; then
           echo "❌ PAT_TOKEN secret not found"
+          echo "Please add PAT_TOKEN as a repository secret"
           exit 1
         else
           echo "✅ PAT_TOKEN secret found"
+        fi
+        
+    - name: Install image optimization tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y webp imagemagick
+        echo "✅ Image optimization tools installed"
+        
+    - name: Optimize student images
+      run: |
+        echo "🖼️  Starting image optimization..."
+        
+        # Function to optimize images
+        optimize_image() {
+          local input_file="$1"
+          local dir=$(dirname "$input_file")
+          local filename=$(basename "$input_file")
+          local name="${filename%.*}"
+          local ext="${filename##*.}"
+          
+          echo "  📸 Processing: $input_file"
+          
+          # Handle profile_avatar specifically
+          if [[ "$name" == "profile_avatar" ]]; then
+            # Create optimized avatar.webp (200x200 for profile photos)
+            cwebp -q 90 -resize 200 200 "$input_file" -o "${dir}/avatar.webp"
+            echo "    ✅ Created avatar.webp (200x200)"
+            
+            # Also create a regular avatar.jpg for fallback
+            convert "$input_file" -resize 200x200^ -gravity center -extent 200x200 "${dir}/avatar.jpg"
+            echo "    ✅ Created avatar.jpg (200x200)"
+            
+            # Remove original profile_avatar file
+            rm "$input_file"
+            echo "    🗑️  Removed original profile_avatar file"
+            
+          elif [[ "$name" == "avatar" ]]; then
+            # Handle existing avatar files
+            cwebp -q 90 -resize 200 200 "$input_file" -o "${dir}/avatar.webp"
+            echo "    ✅ Optimized existing avatar to WebP"
+            
+          else
+            # Handle other images (project images, etc.)
+            cwebp -q 85 -resize 800 600 "$input_file" -o "${dir}/${name}.webp"
+            echo "    ✅ Optimized ${name} to WebP (800x600)"
+            
+            # Keep original for now (students might reference it)
+            # Optionally: rm "$input_file" to remove original
+          fi
+        }
+        
+        # Find and process all images
+        image_count=0
+        find data/ -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" \) | while read -r file; do
+          optimize_image "$file"
+          ((image_count++))
+        done
+        
+        echo "📊 Processed $image_count images"
+        
+    - name: Commit optimized images
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action - Image Optimizer"
+        git add data/
+        
+        if git diff --staged --quiet; then
+          echo "📷 No image changes to commit"
+        else
+          git commit -m "🖼️ Optimize images: Convert profile_avatar.jpg to avatar.webp and avatar.jpg"
+          git push origin main
+          echo "✅ Pushed optimized images"
         fi
         
     - name: Checkout main portfolio repository
@@ -42,24 +126,125 @@ jobs:
       with:
         python-version: '3.9'
         
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install PyYAML
+        echo "✅ Python dependencies installed"
         
-    - name: Sync student data
+    - name: Sync student data and generate profiles
       run: |
+        echo "🔄 Starting student data sync..."
         python scripts/sync-to-portfolio.py
+        
+    - name: Verify generated files
+      run: |
+        echo "📋 Verifying generated files..."
+        
+        # Check if profiles directory exists and has files
+        if [ -d "main-portfolio/profiles" ]; then
+          profile_count=$(find main-portfolio/profiles -name "*.html" | wc -l)
+          echo "✅ Generated $profile_count profile pages"
+          
+          # List generated profiles
+          echo "📄 Generated profiles:"
+          find main-portfolio/profiles -name "*.html" -exec basename {} .html \; | sort
+        else
+          echo "⚠️ No profiles directory found"
+        fi
+        
+        # Check if semester data file exists
+        if [ -f "main-portfolio/data/students_msds696_s71.json" ]; then
+          echo "✅ Semester data file created"
+          # Show student count
+          student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
+          echo "📊 Processed $student_count students"
+        else
+          echo "⚠️ Semester data file not found"
+        fi
         
     - name: Commit and push to main portfolio
       run: |
         cd main-portfolio
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add .
+        git config --local user.name "GitHub Action - Portfolio Sync"
+        
+        # Add all generated files
+        git add profiles/
+        git add data/
+        
+        # Check if there are changes to commit
         if git diff --staged --quiet; then
-          echo "No changes to commit"
+          echo "📝 No changes to commit to main portfolio"
         else
-          git commit -m "Auto-sync student data from regis_std - $(date)"
-          git push
+          # Get some stats for the commit message
+          if [ -f "data/students_msds696_s71.json" ]; then
+            student_count=$(jq '.students | length' data/students_msds696_s71.json 2>/dev/null || echo "unknown")
+            commit_msg="🎓 Auto-sync: Updated $student_count student profiles - $(date +'%Y-%m-%d %H:%M UTC')"
+          else
+            commit_msg="🎓 Auto-sync: Updated student data - $(date +'%Y-%m-%d %H:%M UTC')"
+          fi
+          
+          git commit -m "$commit_msg"
+          git push origin main
+          echo "✅ Successfully pushed updates to main portfolio"
+          
+          # Show what was updated
+          echo "📊 Update summary:"
+          git show --stat HEAD~1..HEAD
         fi
+        
+    - name: Generate summary report
+      run: |
+        echo "📋 === SYNC SUMMARY REPORT ===" 
+        echo "⏰ Sync completed at: $(date)"
+        echo ""
+        
+        # Count students processed
+        if [ -f "main-portfolio/data/students_msds696_s71.json" ]; then
+          student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
+          echo "👥 Students processed: $student_count"
+          
+          # List students
+          echo "📋 Student list:"
+          jq -r '.students[] | "  - " + .name + " (" + .username + ")"' main-portfolio/data/students_msds696_s71.json | sort
+        fi
+        
+        echo ""
+        
+        # Count profile pages
+        if [ -d "main-portfolio/profiles" ]; then
+          profile_count=$(find main-portfolio/profiles -name "*.html" | wc -l)
+          echo "📄 Profile pages generated: $profile_count"
+        fi
+        
+        echo ""
+        
+        # Show URLs where profiles will be available
+        echo "🌐 Profile URLs (after GitHub Pages deployment):"
+        if [ -d "main-portfolio/profiles" ]; then
+          find main-portfolio/profiles -name "*.html" -exec basename {} .html \; | sort | while read username; do
+            echo "  - https://gmujtaba.com/regis/profiles/$username.html"
+          done
+        fi
+        
+        echo ""
+        echo "✅ Sync completed successfully!"
+        
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ === SYNC FAILED ===" 
+        echo "⏰ Failed at: $(date)"
+        echo ""
+        echo "🔍 Check the logs above for error details"
+        echo "💡 Common issues:"
+        echo "  - PAT_TOKEN not set or expired"
+        echo "  - Malformed markdown in student profiles"
+        echo "  - Missing required files"
+        echo "  - Network connectivity issues"
+        echo ""
+        echo "🛠️  To fix:"
+        echo "  1. Check repository secrets (PAT_TOKEN)"
+        echo "  2. Validate student markdown files"
+        echo "  3. Re-run the workflow"
