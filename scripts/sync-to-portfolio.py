@@ -40,7 +40,8 @@ def find_student_files(student_dir, course_code, username):
     }
     
     # base_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}"
-    base_url = f"https://github.com/iamgmujtaba/regis_std/blob/main/data/{course_code}/{username}"
+    # base_url = f"https://github.com/iamgmujtaba/regis_std/blob/main/data/{course_code}/{username}"
+    base_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}"
 
     # Find avatar (priority: webp > jpg > png)
     for ext in ['webp', 'jpg', 'jpeg', 'png']:
