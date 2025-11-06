@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Student Portfolio - Practicum Projects">
+    <title>Student Name - Portfolio</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af',
+                        secondary: '#7c3aed',
+                        accent: '#06b6d4',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-user-graduate text-primary text-2xl mr-3"></i>
+                    <span class="font-bold text-xl text-gray-800">My Portfolio</span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="../index.html" class="text-gray-700 hover:text-primary transition duration-300">
+                        <i class="fas fa-home mr-1"></i> Home
+                    </a>
+                    <a href="#about" class="text-gray-700 hover:text-primary transition duration-300">About</a>
+                    <a href="#projects" class="text-gray-700 hover:text-primary transition duration-300">Projects</a>
+                    <a href="#contact" class="text-gray-700 hover:text-primary transition duration-300">Contact</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-primary">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="../index.html" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">
+                    <i class="fas fa-home mr-1"></i> Home
+                </a>
+                <a href="#about" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">About</a>
+                <a href="#projects" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Projects</a>
+                <a href="#contact" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero/Profile Section -->
+    <section class="bg-gradient-to-r from-primary to-secondary py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                <!-- Profile Photo -->
+                <div class="flex-shrink-0">
+                    <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white">
+                        <img src="../assets/img/placeholder-profile.jpg" 
+                             alt="Student Name" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://via.placeholder.com/200x200/1e40af/ffffff?text=Your+Photo'">
+                    </div>
+                </div>
+                
+                <!-- Profile Info -->
+                <div class="text-center md:text-left text-white">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-2">Your Full Name</h1>
+                    <p class="text-xl text-blue-100 mb-4">Computer Science Major | Practicum Student</p>
+                    
+                    <!-- Social Links -->
+                    <div class="flex justify-center md:justify-start space-x-4 mb-4">
+                        <a href="https://github.com/yourusername" 
+                           target="_blank"
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                        <a href="https://linkedin.com/in/yourprofile" 
+                           target="_blank"
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                        <a href="mailto:your.email@university.edu" 
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                            <i class="fas fa-envelope text-xl"></i>
+                        </a>
+                        <a href="../assets/pdf/your-cv.pdf" 
+                           target="_blank"
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                            <i class="fas fa-file-pdf text-xl"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- Quick Links -->
+                    <div class="flex flex-wrap justify-center md:justify-start gap-3">
+                        <a href="../assets/pdf/your-cv.pdf" 
+                           target="_blank"
+                           class="bg-white text-primary px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition duration-300 inline-flex items-center">
+                            <i class="fas fa-download mr-2"></i> Download CV
+                        </a>
+                        <a href="#contact" 
+                           class="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-primary transition duration-300 inline-flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Contact Me
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-16 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">About Me</h2>
+            <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+            
+            <div class="prose prose-lg max-w-none text-gray-700">
+                <p class="text-lg leading-relaxed mb-4">
+                    I am a dedicated Computer Science student at [Your University], currently completing my practicum 
+                    experience with a focus on [Your Focus Area, e.g., machine learning, web development, data science]. 
+                    With a passion for technology and innovation, I strive to create impactful solutions that address 
+                    real-world challenges.
+                </p>
+                <p class="text-lg leading-relaxed mb-4">
+                    Throughout my academic journey, I have developed strong skills in [List Key Skills, e.g., Python, 
+                    JavaScript, React, TensorFlow] and have applied them to various projects ranging from [Project Type 1] 
+                    to [Project Type 2]. My practicum experience has allowed me to collaborate with industry professionals 
+                    and gain hands-on experience in [Specific Domain].
+                </p>
+                <p class="text-lg leading-relaxed">
+                    I am particularly interested in [Specific Interest Area] and aim to contribute to [Future Goals]. 
+                    In my free time, I enjoy [Hobbies/Interests] and staying updated with the latest trends in technology.
+                </p>
+            </div>
+
+            <!-- Skills Section -->
+            <div class="mt-12">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Technical Skills</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-center border border-blue-200">
+                        <i class="fas fa-code text-primary text-3xl mb-2"></i>
+                        <p class="font-semibold">Programming</p>
+                        <p class="text-sm text-gray-600">Python, Java, C++</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-center border border-green-200">
+                        <i class="fas fa-laptop-code text-green-600 text-3xl mb-2"></i>
+                        <p class="font-semibold">Web Dev</p>
+                        <p class="text-sm text-gray-600">HTML, CSS, JavaScript</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-center border border-purple-200">
+                        <i class="fas fa-database text-purple-600 text-3xl mb-2"></i>
+                        <p class="font-semibold">Databases</p>
+                        <p class="text-sm text-gray-600">SQL, MongoDB</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg text-center border border-orange-200">
+                        <i class="fas fa-brain text-orange-600 text-3xl mb-2"></i>
+                        <p class="font-semibold">AI/ML</p>
+                        <p class="text-sm text-gray-600">TensorFlow, Scikit-learn</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Practicum Projects</h2>
+            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
+
+            <!-- Practicum I Project -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
+                <div class="bg-gradient-to-r from-primary to-blue-600 px-6 py-4">
+                    <h3 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-project-diagram mr-3"></i>
+                        Practicum I Project
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">
+                        [Your Practicum I Project Title]
+                    </h4>
+                    
+                    <div class="mb-4">
+                        <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+                            <i class="fas fa-tag mr-1"></i> Machine Learning
+                        </span>
+                        <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+                            <i class="fas fa-tag mr-1"></i> Python
+                        </span>
+                        <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">
+                            <i class="fas fa-tag mr-1"></i> Data Analysis
+                        </span>
+                    </div>
+
+                    <p class="text-gray-700 mb-4 leading-relaxed">
+                        <strong>Abstract:</strong> This project explores [brief description of your project]. 
+                        The main objective was to [state the goal]. Using [technologies/methodologies used], 
+                        I developed [what you built] that achieves [results/outcomes]. The project demonstrates 
+                        [key learnings or innovations]. Key features include [list 2-3 main features].
+                    </p>
+
+                    <div class="border-t border-gray-200 pt-4 mt-4">
+                        <h5 class="font-semibold text-gray-900 mb-3">Key Achievements:</h5>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700 mb-4">
+                            <li>Implemented [specific achievement or feature]</li>
+                            <li>Achieved [quantifiable result, e.g., 95% accuracy, 50% performance improvement]</li>
+                            <li>Collaborated with [team/mentor] to [specific collaboration]</li>
+                        </ul>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 mt-6">
+                        <a href="https://github.com/yourusername/project1" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                            <i class="fab fa-github mr-2"></i> View Code
+                        </a>
+                        <a href="../assets/pdf/practicum1-report.pdf" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-800 transition duration-300">
+                            <i class="fas fa-file-pdf mr-2"></i> Read Report
+                        </a>
+                        <a href="../assets/pdf/practicum1-presentation.pdf" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-800 transition duration-300">
+                            <i class="fas fa-presentation mr-2"></i> View Slides
+                        </a>
+                        <a href="https://demo-link.com" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-accent text-white rounded-lg hover:bg-cyan-700 transition duration-300">
+                            <i class="fas fa-external-link-alt mr-2"></i> Live Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Practicum II Project -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition duration-300">
+                <div class="bg-gradient-to-r from-secondary to-purple-600 px-6 py-4">
+                    <h3 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-rocket mr-3"></i>
+                        Practicum II Project
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <h4 class="text-xl font-bold text-gray-900 mb-3">
+                        [Your Practicum II Project Title]
+                    </h4>
+                    
+                    <div class="mb-4">
+                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+                            <i class="fas fa-tag mr-1"></i> Web Development
+                        </span>
+                        <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+                            <i class="fas fa-tag mr-1"></i> React
+                        </span>
+                        <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
+                            <i class="fas fa-tag mr-1"></i> Full Stack
+                        </span>
+                    </div>
+
+                    <p class="text-gray-700 mb-4 leading-relaxed">
+                        <strong>Abstract:</strong> Building upon my previous work, this advanced project focuses on 
+                        [brief description]. The system addresses [problem statement] by implementing [solution approach]. 
+                        Through [methodology], I created [deliverable] that provides [value proposition]. This project 
+                        showcases advanced skills in [technical areas] and demonstrates [impact or innovation].
+                    </p>
+
+                    <div class="border-t border-gray-200 pt-4 mt-4">
+                        <h5 class="font-semibold text-gray-900 mb-3">Key Achievements:</h5>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700 mb-4">
+                            <li>Designed and developed [specific feature or component]</li>
+                            <li>Optimized [aspect] resulting in [improvement]</li>
+                            <li>Integrated [technology/API] to enable [functionality]</li>
+                        </ul>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 mt-6">
+                        <a href="https://github.com/yourusername/project2" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition duration-300">
+                            <i class="fab fa-github mr-2"></i> View Code
+                        </a>
+                        <a href="../assets/pdf/practicum2-report.pdf" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-800 transition duration-300">
+                            <i class="fas fa-file-pdf mr-2"></i> Read Report
+                        </a>
+                        <a href="../assets/pdf/practicum2-presentation.pdf" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-800 transition duration-300">
+                            <i class="fas fa-presentation mr-2"></i> View Slides
+                        </a>
+                        <a href="https://yourblog.com" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300">
+                            <i class="fas fa-blog mr-2"></i> Project Blog
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Get In Touch</h2>
+            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Contact Info -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Contact Information</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-envelope text-white"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold">Email</p>
+                                <a href="mailto:your.email@university.edu" class="text-primary hover:underline">
+                                    your.email@university.edu
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+                                    <i class="fab fa-linkedin text-white"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold">LinkedIn</p>
+                                <a href="https://linkedin.com/in/yourprofile" 
+                                   target="_blank"
+                                   class="text-primary hover:underline">
+                                    linkedin.com/in/yourprofile
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                                    <i class="fab fa-github text-white"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold">GitHub</p>
+                                <a href="https://github.com/yourusername" 
+                                   target="_blank"
+                                   class="text-primary hover:underline">
+                                    github.com/yourusername
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-map-marker-alt text-white"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold">Location</p>
+                                <p class="text-gray-600">City, State, Country</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Message Card -->
+                <div class="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+                    <h3 class="text-xl font-semibold mb-4">Send a Message</h3>
+                    <p class="text-gray-700 mb-4">
+                        Feel free to reach out for collaboration opportunities, questions about my projects, 
+                        or just to connect!
+                    </p>
+                    <a href="mailto:your.email@university.edu?subject=Hello%20from%20your%20portfolio" 
+                       class="block w-full bg-primary text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-800 transition duration-300">
+                        <i class="fas fa-paper-plane mr-2"></i> Send Email
+                    </a>
+                    
+                    <div class="mt-6 pt-6 border-t border-blue-200">
+                        <p class="text-sm text-gray-600 text-center mb-3">Connect on social media:</p>
+                        <div class="flex justify-center space-x-4">
+                            <a href="https://github.com/yourusername" 
+                               target="_blank"
+                               class="w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://linkedin.com/in/yourprofile" 
+                               target="_blank"
+                               class="w-10 h-10 bg-blue-700 text-white rounded-full flex items-center justify-center hover:bg-blue-800 transition">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                            <a href="https://twitter.com/yourhandle" 
+                               target="_blank"
+                               class="w-10 h-10 bg-sky-500 text-white rounded-full flex items-center justify-center hover:bg-sky-600 transition">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="mb-2">&copy; 2025 Your Name. All rights reserved.</p>
+            <p class="text-gray-400 text-sm">Practicum Portfolio | Powered by GitHub Pages</p>
+            <div class="mt-4">
+                <a href="../index.html" class="text-gray-400 hover:text-white transition mx-2">
+                    <i class="fas fa-home mr-1"></i> Back to Main Page
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu Script -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
