@@ -45,9 +45,11 @@ jobs:
     - name: Cache apt packages
       uses: actions/cache@v4
       with:
-        path: /var/cache/apt/archives
-        key: ${{ runner.os }}-apt-${{ hashFiles('**/workflows/sync-to-main.yml') }}
+        path: |
+          /var/cache/apt/archives/*.deb
+        key: ${{ runner.os }}-apt-imagetools-${{ hashFiles('.github/workflows/sync-to-main.yml') }}
         restore-keys: |
+          ${{ runner.os }}-apt-imagetools-
           ${{ runner.os }}-apt-
           
     - name: Install image optimization tools
@@ -145,10 +147,12 @@ jobs:
     - name: Cache Python dependencies
       uses: actions/cache@v4
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-pyyaml-${{ hashFiles('.github/workflows/sync-to-main.yml') }}
+        path: |
+          ~/.cache/pip
+          ~/.local/lib/python*/site-packages
+        key: ${{ runner.os }}-python-deps-${{ hashFiles('.github/workflows/sync-to-main.yml') }}
         restore-keys: |
-          ${{ runner.os }}-pip-pyyaml-
+          ${{ runner.os }}-python-deps-
           ${{ runner.os }}-pip-
         
     - name: Install Python dependencies
