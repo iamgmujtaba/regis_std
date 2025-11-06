@@ -30,4 +30,4 @@ Each student folder contains:
 - Use standard formats (JPG/PNG for images, PDF for documents)
 
 Generated from: `MSDS696_S71_Data Science Practicum II_GradesExport_2025-11-05-18-14.csv`
-Last updated: 2025-11-05 23:51:41
+Last updated: 2025-11-06 11:38:13
