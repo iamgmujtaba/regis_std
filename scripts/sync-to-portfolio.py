@@ -30,15 +30,19 @@ def parse_markdown_profile(md_path):
     
     return metadata, md_content
 
-def create_html_page(student_data, course_code, target_dir):
-    """Create HTML page for student using simple profiles/username.html structure"""
+def create_html_page(student_data, course_code, target_dir, markdown_content, metadata):
+    """Create HTML page for student with embedded content"""
     username = student_data['username']
     
     # Create profiles directory if it doesn't exist
     profiles_dir = target_dir / 'profiles'
     profiles_dir.mkdir(exist_ok=True)
     
-    # Create the HTML file directly in profiles folder
+    # Parse the markdown content using the existing parser logic
+    # Extract sections from markdown
+    sections = parse_markdown_sections(markdown_content)
+    
+    # Create the HTML file with embedded content
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,14 +78,6 @@ def create_html_page(student_data, course_code, target_dir):
     </script>
 </head>
 <body class="bg-gray-50 font-sans">
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-            <p class="text-gray-600">Loading profile...</p>
-        </div>
-    </div>
-
     <!-- Navigation -->
     <nav class="bg-white shadow-lg fixed w-full top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -127,12 +123,90 @@ def create_html_page(student_data, course_code, target_dir):
     </nav>
 
     <!-- Main Content -->
-    <div id="main-content" style="display: none;">
-        <!-- Content will be populated by JavaScript -->
-    </div>
+    <main class="pt-16">
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-br from-primary to-secondary text-white py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <div class="mb-8">
+                        <div class="w-32 h-32 mx-auto bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
+                            <i class="fas fa-user text-6xl text-white/80"></i>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">{metadata.get('firstName', '')} {metadata.get('lastName', '')}</h1>
+                    <p class="text-xl text-blue-100 mb-6">Data Science Student at Regis University</p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <a href="mailto:{metadata.get('email', '')}" class="inline-flex items-center px-6 py-3 bg-white text-primary rounded-full hover:bg-gray-100 transition duration-300">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Contact Me
+                        </a>
+                        <a href="#about" class="inline-flex items-center px-6 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-primary transition duration-300">
+                            <i class="fas fa-user mr-2"></i>
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">About Me</h2>
+                    <div class="w-20 h-1 bg-primary mx-auto"></div>
+                </div>
+                <div class="max-w-4xl mx-auto">
+                    <div class="prose prose-lg mx-auto text-gray-600">
+                        {sections.get('about', '<p>Edit your profile.md file to add information about yourself, your background, and your interests in data science.</p>')}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Skills</h2>
+                    <div class="w-20 h-1 bg-primary mx-auto"></div>
+                </div>
+                <div class="max-w-4xl mx-auto">
+                    {sections.get('skills', generate_default_skills())}
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Projects</h2>
+                    <div class="w-20 h-1 bg-primary mx-auto"></div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                    {sections.get('practicum1', generate_default_project('Practicum I'))}
+                    {sections.get('practicum2', generate_default_project('Practicum II'))}
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="py-16 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">Get In Touch</h2>
+                    <div class="w-20 h-1 bg-primary mx-auto"></div>
+                </div>
+                <div class="max-w-4xl mx-auto">
+                    {sections.get('contact', generate_default_contact(metadata))}
+                </div>
+            </div>
+        </section>
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-8 mt-16">
+    <footer class="bg-gray-900 text-white py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <div class="flex items-center justify-center space-x-2 mb-4">
@@ -150,61 +224,28 @@ def create_html_page(student_data, course_code, target_dir):
 
     <!-- JavaScript -->
     <script src="../assets/js/main.js"></script>
-    <script src="../assets/js/markdown-parser.js"></script>
     <script>
-        // Profile configuration
-        const PROFILE_CONFIG = {{
-            username: '{username}',
-            course: '{course_code}',
-            profilePath: 'https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}/profile.md'
-        }};
-
-        // Load and render the profile
-        document.addEventListener('DOMContentLoaded', async function() {{
-            try {{
-                // Fetch the markdown profile
-                const response = await fetch(PROFILE_CONFIG.profilePath);
-                if (!response.ok) {{
-                    throw new Error('Profile not found');
-                }}
-                
-                const markdownContent = await response.text();
-                
-                // Parse and render the markdown
-                const parser = new MarkdownParser();
-                const htmlContent = parser.generateHTML(markdownContent, PROFILE_CONFIG);
-                
-                // Update the main content
-                document.getElementById('main-content').innerHTML = htmlContent;
-                document.getElementById('main-content').style.display = 'block';
-                
-                // Hide loading screen
-                document.getElementById('loading-screen').style.display = 'none';
-                
-                // Initialize mobile menu
-                const mobileMenuButton = document.getElementById('mobile-menu-button');
-                const mobileMenu = document.getElementById('mobile-menu');
-                
-                if (mobileMenuButton && mobileMenu) {{
-                    mobileMenuButton.addEventListener('click', function() {{
-                        mobileMenu.classList.toggle('hidden');
-                    }});
-                }}
-                
-            }} catch (error) {{
-                console.error('Error loading profile:', error);
-                document.getElementById('loading-screen').innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
-                        <h2 class="text-xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
-                        <p class="text-gray-600 mb-4">Unable to load the student profile.</p>
-                        <a href="../index.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-800 transition duration-300">
-                            <i class="fas fa-home mr-2"></i>
-                            Return Home
-                        </a>
-                    </div>
-                `;
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {{
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {{
+                mobileMenuButton.addEventListener('click', function() {{
+                    mobileMenu.classList.toggle('hidden');
+                }});
             }}
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {{
+                anchor.addEventListener('click', function (e) {{
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {{
+                        target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                    }}
+                }});
+            }});
         }});
     </script>
 </body>
@@ -217,8 +258,122 @@ def create_html_page(student_data, course_code, target_dir):
     
     print(f"    🌐 Created HTML page: profiles/{username}.html")
     
-    # Return simple path
     return f'profiles/{username}.html'
+
+def parse_markdown_sections(content):
+    """Parse markdown content into sections"""
+    sections = {}
+    
+    # Simple section parsing
+    lines = content.split('\n')
+    current_section = None
+    current_content = []
+    
+    for line in lines:
+        if line.startswith('## '):
+            # Save previous section
+            if current_section:
+                sections[current_section] = '\n'.join(current_content)
+            
+            # Start new section
+            section_name = line[3:].strip().lower()
+            if 'about' in section_name:
+                current_section = 'about'
+            elif 'skill' in section_name:
+                current_section = 'skills'
+            elif 'practicum i' in section_name:
+                current_section = 'practicum1'
+            elif 'practicum ii' in section_name:
+                current_section = 'practicum2'
+            elif 'contact' in section_name:
+                current_section = 'contact'
+            else:
+                current_section = section_name.replace(' ', '_')
+            
+            current_content = []
+        else:
+            if current_section:
+                current_content.append(line)
+    
+    # Save last section
+    if current_section:
+        sections[current_section] = '\n'.join(current_content)
+    
+    return sections
+
+def generate_default_skills():
+    """Generate default skills HTML"""
+    return '''
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-center border border-blue-200">
+            <i class="fas fa-code text-primary text-3xl mb-2"></i>
+            <p class="font-semibold">Programming</p>
+            <p class="text-sm text-gray-600">Python, R, SQL</p>
+        </div>
+        <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-center border border-green-200">
+            <i class="fas fa-chart-bar text-green-600 text-3xl mb-2"></i>
+            <p class="font-semibold">Analytics</p>
+            <p class="text-sm text-gray-600">Data Analysis</p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-center border border-purple-200">
+            <i class="fas fa-brain text-purple-600 text-3xl mb-2"></i>
+            <p class="font-semibold">Machine Learning</p>
+            <p class="text-sm text-gray-600">Scikit-learn</p>
+        </div>
+        <div class="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg text-center border border-red-200">
+            <i class="fas fa-chart-line text-red-600 text-3xl mb-2"></i>
+            <p class="font-semibold">Visualization</p>
+            <p class="text-sm text-gray-600">Matplotlib, Seaborn</p>
+        </div>
+    </div>
+    '''
+
+def generate_default_project(title):
+    """Generate default project HTML"""
+    return f'''
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-primary to-secondary h-2"></div>
+        <div class="p-6">
+            <h3 class="text-xl font-bold text-gray-900 mb-3">{title} Project</h3>
+            <p class="text-gray-600 mb-4">Edit your profile.md file to add information about your {title.lower()} project.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">Python</span>
+                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">Data Science</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="#" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm">
+                    <i class="fab fa-github mr-2"></i>GitHub
+                </a>
+                <a href="#" class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm">
+                    <i class="fas fa-file-pdf mr-2"></i>Report
+                </a>
+            </div>
+        </div>
+    </div>
+    '''
+
+def generate_default_contact(metadata):
+    """Generate default contact HTML"""
+    email = metadata.get('email', '')
+    return f'''
+    <div class="grid md:grid-cols-3 gap-6 text-center">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+            <i class="fas fa-envelope text-3xl text-primary mb-4"></i>
+            <h3 class="font-semibold mb-2">Email</h3>
+            <a href="mailto:{email}" class="text-gray-300 hover:text-white">{email}</a>
+        </div>
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+            <i class="fab fa-linkedin text-3xl text-primary mb-4"></i>
+            <h3 class="font-semibold mb-2">LinkedIn</h3>
+            <a href="#" class="text-gray-300 hover:text-white">Connect with me</a>
+        </div>
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+            <i class="fab fa-github text-3xl text-primary mb-4"></i>
+            <h3 class="font-semibold mb-2">GitHub</h3>
+            <a href="#" class="text-gray-300 hover:text-white">View my code</a>
+        </div>
+    </div>
+    '''
 
 def sync_student_data():
     """Sync student data to main portfolio repository"""
@@ -285,6 +440,9 @@ def sync_student_data():
                         student_data['avatarPath'] = f'regis_std/data/{course_code}/{username}/avatar.{ext}'
                         print(f"    📸 Found avatar: avatar.{ext}")
                         break
+
+
+        
                 
                 # Find project files
                 for pdf_file in student_dir.glob('*.pdf'):
@@ -306,8 +464,8 @@ def sync_student_data():
                     })
                     print(f"    🖼️  Found image: {img_file.name}")
                 
-                # Create HTML page for this student
-                html_path = create_html_page(student_data, course_code, target_dir)
+                # Create HTML page for this student with embedded content
+                html_path = create_html_page(student_data, course_code, target_dir, content, metadata)
                 student_data['profilePage'] = html_path
                 
                 course_students.append(student_data)
