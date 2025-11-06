@@ -31,6 +31,47 @@ def parse_markdown_profile(md_path):
     
     return metadata, md_content
 
+def find_student_files(student_dir, course_code, username):
+    """Find all student files (images, PDFs) and generate URLs"""
+    files = {
+        'avatar_url': None,
+        'images': [],
+        'pdfs': []
+    }
+    
+    base_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}"
+    
+    # Find avatar (priority: webp > jpg > png)
+    for ext in ['webp', 'jpg', 'jpeg', 'png']:
+        avatar_path = student_dir / f'avatar.{ext}'
+        if avatar_path.exists():
+            files['avatar_url'] = f"{base_url}/avatar.{ext}"
+            print(f"    📸 Found avatar: avatar.{ext} -> {files['avatar_url']}")
+            break
+    
+    # Find all images
+    for img_file in student_dir.glob('*.{jpg,jpeg,png,webp}'):
+        if not img_file.name.startswith('avatar'):
+            img_url = f"{base_url}/{img_file.name}"
+            files['images'].append({
+                'name': img_file.name,
+                'url': img_url,
+                'type': 'image'
+            })
+            print(f"    🖼️  Found image: {img_file.name}")
+    
+    # Find all PDFs
+    for pdf_file in student_dir.glob('*.pdf'):
+        pdf_url = f"{base_url}/{pdf_file.name}"
+        files['pdfs'].append({
+            'name': pdf_file.name,
+            'url': pdf_url,
+            'type': 'pdf'
+        })
+        print(f"    📄 Found PDF: {pdf_file.name}")
+    
+    return files
+
 def parse_markdown_sections(content):
     """Parse markdown content into sections exactly as students write them"""
     sections = {
@@ -194,8 +235,154 @@ def parse_contact_section(contact_text):
     
     return contact
 
-def create_html_page(student_data, course_code, target_dir, markdown_content, metadata):
-    """Create HTML page matching template.html exactly"""
+def generate_project_html(project_data, title, gradient_color, student_files, course_code, username):
+    """Generate project HTML with proper PDF links"""
+    if not project_data or not project_data.get('title'):
+        # Default project template
+        return f'''
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
+            <div class="bg-gradient-to-r from-{gradient_color} to-blue-600 px-6 py-4">
+                <h3 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-project-diagram mr-3"></i>
+                    {title} Project
+                </h3>
+            </div>
+            <div class="p-6">
+                <h4 class="text-xl font-bold text-gray-900 mb-3">
+                    [Edit your profile.md to add {title.lower()} project details]
+                </h4>
+                
+                <div class="mb-4">
+                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+                        <i class="fas fa-tag mr-1"></i> Add Tags
+                    </span>
+                </div>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                    <strong>Abstract:</strong> Please edit your profile.md file to add your project abstract and details.
+                </p>
+
+                <div class="flex flex-wrap gap-3 mt-6">
+                    <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
+                        <i class="fab fa-github mr-2"></i> View Code
+                    </a>
+                    <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-file-pdf mr-2"></i> Read Report
+                    </a>
+                    <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-presentation mr-2"></i> View Slides
+                    </a>
+                </div>
+            </div>
+        </div>'''
+    
+    # Generate tags HTML
+    tags_html = ''
+    for tag in project_data.get('tags', []):
+        color = 'blue' if 'Python' in tag else 'green' if 'Data' in tag else 'purple'
+        tags_html += f'''
+        <span class="inline-block bg-{color}-100 text-{color}-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+            <i class="fas fa-tag mr-1"></i> {tag}
+        </span>'''
+    
+    # Generate achievements HTML
+    achievements_html = ''
+    for achievement in project_data.get('achievements', []):
+        achievements_html += f'<li>{achievement}</li>'
+    
+    # Auto-detect PDF files if not specified in markdown
+    report_url = project_data.get('report', '#')
+    slides_url = project_data.get('slides', '#')
+    
+    # Try to find project-specific PDFs
+    project_num = '1' if 'practicum i' in title.lower() else '2'
+    base_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}"
+    
+    # Look for common report naming patterns
+    if report_url == '#':
+        report_patterns = [
+            f'practicum{project_num}_report.pdf',
+            f'project{project_num}_report.pdf',
+            f'practicum_{project_num}_report.pdf',
+            'report.pdf'
+        ]
+        for pattern in report_patterns:
+            for pdf in student_files['pdfs']:
+                if pattern in pdf['name'].lower():
+                    report_url = pdf['url']
+                    break
+            if report_url != '#':
+                break
+    
+    # Look for common slides naming patterns
+    if slides_url == '#':
+        slides_patterns = [
+            f'practicum{project_num}_slides.pdf',
+            f'practicum{project_num}_presentation.pdf',
+            f'project{project_num}_slides.pdf',
+            'slides.pdf',
+            'presentation.pdf'
+        ]
+        for pattern in slides_patterns:
+            for pdf in student_files['pdfs']:
+                if pattern in pdf['name'].lower():
+                    slides_url = pdf['url']
+                    break
+            if slides_url != '#':
+                break
+    
+    # Generate button classes based on availability
+    github_class = "bg-gray-900 text-white hover:bg-gray-800" if project_data.get('github', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
+    report_class = "bg-primary text-white hover:bg-blue-800" if report_url != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
+    slides_class = "bg-secondary text-white hover:bg-purple-800" if slides_url != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
+    demo_class = "bg-accent text-white hover:bg-cyan-700" if project_data.get('demo', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
+    
+    return f'''
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
+        <div class="bg-gradient-to-r from-{gradient_color} to-blue-600 px-6 py-4">
+            <h3 class="text-2xl font-bold text-white flex items-center">
+                <i class="fas fa-project-diagram mr-3"></i>
+                {title} Project
+            </h3>
+        </div>
+        <div class="p-6">
+            <h4 class="text-xl font-bold text-gray-900 mb-3">
+                {project_data.get('title', f'{title} Project')}
+            </h4>
+            
+            <div class="mb-4">
+                {tags_html}
+            </div>
+
+            <p class="text-gray-700 mb-4 leading-relaxed">
+                <strong>Abstract:</strong> {project_data.get('abstract', 'Please add project abstract in your profile.md file.')}
+            </p>
+
+            {"<div class='border-t border-gray-200 pt-4 mt-4'><h5 class='font-semibold text-gray-900 mb-3'>Key Achievements:</h5><ul class='list-disc list-inside space-y-2 text-gray-700 mb-4'>" + achievements_html + "</ul></div>" if achievements_html else ""}
+
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="{project_data.get('github', '#')}" 
+                   {"target='_blank'" if project_data.get('github', '#') != '#' else ""}
+                   class="inline-flex items-center px-4 py-2 {github_class} rounded-lg transition duration-300">
+                    <i class="fab fa-github mr-2"></i> View Code
+                </a>
+                <a href="{report_url}" 
+                   {"target='_blank'" if report_url != '#' else ""}
+                   class="inline-flex items-center px-4 py-2 {report_class} rounded-lg transition duration-300">
+                    <i class="fas fa-file-pdf mr-2"></i> Read Report
+                </a>
+                <a href="{slides_url}" 
+                   {"target='_blank'" if slides_url != '#' else ""}
+                   class="inline-flex items-center px-4 py-2 {slides_class} rounded-lg transition duration-300">
+                    <i class="fas fa-presentation mr-2"></i> View Slides
+                </a>
+                {"<a href='" + project_data.get('demo', '#') + "' target='_blank' class='inline-flex items-center px-4 py-2 " + demo_class + " rounded-lg transition duration-300'><i class='fas fa-external-link-alt mr-2'></i> Live Demo</a>" if project_data.get('demo', '#') != '#' else ""}
+            </div>
+        </div>
+    </div>'''
+
+def create_html_page(student_data, course_code, target_dir, markdown_content, metadata, student_files):
+    """Create HTML page matching template.html exactly with proper file URLs"""
     username = student_data['username']
     first_name = metadata.get('firstName', 'Student')
     last_name = metadata.get('lastName', 'Name')
@@ -211,15 +398,15 @@ def create_html_page(student_data, course_code, target_dir, markdown_content, me
     # Generate skills HTML
     skills_html = generate_skills_html(sections['skills'])
     
-    # Generate project HTML
-    practicum1_html = generate_project_html(sections['practicum1'], 'Practicum I', 'primary')
-    practicum2_html = generate_project_html(sections['practicum2'], 'Practicum II', 'secondary')
+    # Generate project HTML with file links
+    practicum1_html = generate_project_html(sections['practicum1'], 'Practicum I', 'primary', student_files, course_code, username)
+    practicum2_html = generate_project_html(sections['practicum2'], 'Practicum II', 'secondary', student_files, course_code, username)
     
     # Generate contact HTML
     contact_html = generate_contact_html(sections['contact'], email)
     
-    # Check for avatar (prefer webp, then other formats)
-    avatar_path = find_avatar(student_data, course_code)
+    # Use the found avatar URL or fallback
+    avatar_url = student_files['avatar_url'] or f"https://via.placeholder.com/200x200/1e40af/ffffff?text={first_name[0]}{last_name[0]}"
     
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
@@ -299,7 +486,7 @@ def create_html_page(student_data, course_code, target_dir, markdown_content, me
                 <!-- Profile Photo -->
                 <div class="flex-shrink-0">
                     <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white">
-                        <img src="{avatar_path}" 
+                        <img src="{avatar_url}" 
                              alt="{first_name} {last_name}" 
                              class="w-full h-full object-cover"
                              onerror="this.src='https://via.placeholder.com/200x200/1e40af/ffffff?text={first_name[0]}{last_name[0]}'">
@@ -431,31 +618,10 @@ def create_html_page(student_data, course_code, target_dir, markdown_content, me
         f.write(html_content)
     
     print(f"    🌐 Created HTML page: profiles/{username}.html")
+    print(f"    📸 Avatar URL: {avatar_url}")
+    print(f"    📄 Found {len(student_files['pdfs'])} PDFs, {len(student_files['images'])} images")
+    
     return f'profiles/{username}.html'
-
-def find_avatar(student_data, course_code):
-    """Find student avatar, prefer webp format, handle profile_avatar naming"""
-    username = student_data['username']
-    
-    # Priority order: webp (optimized) -> jpg (converted) -> png (fallback)
-    avatar_extensions = ['webp', 'jpg', 'jpeg', 'png']
-    
-    for ext in avatar_extensions:
-        # Check if we have this format in student data
-        if student_data.get('avatarPath') and f'avatar.{ext}' in student_data['avatarPath']:
-            return f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}/avatar.{ext}"
-    
-    # Fallback: try to construct path directly
-    for ext in avatar_extensions:
-        avatar_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}/avatar.{ext}"
-        # We can't check if URL exists here, so we'll use the first one and let HTML handle fallback
-        if ext == 'webp':  # Prefer webp as it should exist after optimization
-            return avatar_url
-    
-    # Final fallback: placeholder with initials
-    first_initial = student_data.get('name', username)[0].upper()
-    last_initial = student_data.get('name', username).split()[-1][0].upper() if ' ' in student_data.get('name', username) else ''
-    return f"https://via.placeholder.com/200x200/1e40af/ffffff?text={first_initial}{last_initial}"
 
 def format_about_text(about_text):
     """Format about text as HTML paragraphs"""
@@ -524,111 +690,6 @@ def generate_skills_html(skills_dict):
     
     html += '</div>'
     return html
-
-def generate_project_html(project_data, title, gradient_color):
-    """Generate project HTML from parsed project data"""
-    if not project_data or not project_data.get('title'):
-        # Default project template
-        return f'''
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
-            <div class="bg-gradient-to-r from-{gradient_color} to-blue-600 px-6 py-4">
-                <h3 class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-project-diagram mr-3"></i>
-                    {title} Project
-                </h3>
-            </div>
-            <div class="p-6">
-                <h4 class="text-xl font-bold text-gray-900 mb-3">
-                    [Edit your profile.md to add {title.lower()} project details]
-                </h4>
-                
-                <div class="mb-4">
-                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
-                        <i class="fas fa-tag mr-1"></i> Add Tags
-                    </span>
-                </div>
-
-                <p class="text-gray-700 mb-4 leading-relaxed">
-                    <strong>Abstract:</strong> Please edit your profile.md file to add your project abstract and details.
-                </p>
-
-                <div class="flex flex-wrap gap-3 mt-6">
-                    <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
-                        <i class="fab fa-github mr-2"></i> View Code
-                    </a>
-                    <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
-                        <i class="fas fa-file-pdf mr-2"></i> Read Report
-                    </a>
-                    <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed">
-                        <i class="fas fa-presentation mr-2"></i> View Slides
-                    </a>
-                </div>
-            </div>
-        </div>'''
-    
-    # Generate tags HTML
-    tags_html = ''
-    for tag in project_data.get('tags', []):
-        color = 'blue' if 'Python' in tag else 'green' if 'Data' in tag else 'purple'
-        tags_html += f'''
-        <span class="inline-block bg-{color}-100 text-{color}-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
-            <i class="fas fa-tag mr-1"></i> {tag}
-        </span>'''
-    
-    # Generate achievements HTML
-    achievements_html = ''
-    for achievement in project_data.get('achievements', []):
-        achievements_html += f'<li>{achievement}</li>'
-    
-    # Generate links HTML
-    github_class = "bg-gray-900 text-white hover:bg-gray-800" if project_data.get('github', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
-    report_class = "bg-primary text-white hover:bg-blue-800" if project_data.get('report', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
-    slides_class = "bg-secondary text-white hover:bg-purple-800" if project_data.get('slides', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
-    demo_class = "bg-accent text-white hover:bg-cyan-700" if project_data.get('demo', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
-    
-    return f'''
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
-        <div class="bg-gradient-to-r from-{gradient_color} to-blue-600 px-6 py-4">
-            <h3 class="text-2xl font-bold text-white flex items-center">
-                <i class="fas fa-project-diagram mr-3"></i>
-                {title} Project
-            </h3>
-        </div>
-        <div class="p-6">
-            <h4 class="text-xl font-bold text-gray-900 mb-3">
-                {project_data.get('title', f'{title} Project')}
-            </h4>
-            
-            <div class="mb-4">
-                {tags_html}
-            </div>
-
-            <p class="text-gray-700 mb-4 leading-relaxed">
-                <strong>Abstract:</strong> {project_data.get('abstract', 'Please add project abstract in your profile.md file.')}
-            </p>
-
-            {"<div class='border-t border-gray-200 pt-4 mt-4'><h5 class='font-semibold text-gray-900 mb-3'>Key Achievements:</h5><ul class='list-disc list-inside space-y-2 text-gray-700 mb-4'>" + achievements_html + "</ul></div>" if achievements_html else ""}
-
-            <div class="flex flex-wrap gap-3 mt-6">
-                <a href="{project_data.get('github', '#')}" 
-                   {"target='_blank'" if project_data.get('github', '#') != '#' else ""}
-                   class="inline-flex items-center px-4 py-2 {github_class} rounded-lg transition duration-300">
-                    <i class="fab fa-github mr-2"></i> View Code
-                </a>
-                <a href="{project_data.get('report', '#')}" 
-                   {"target='_blank'" if project_data.get('report', '#') != '#' else ""}
-                   class="inline-flex items-center px-4 py-2 {report_class} rounded-lg transition duration-300">
-                    <i class="fas fa-file-pdf mr-2"></i> Read Report
-                </a>
-                <a href="{project_data.get('slides', '#')}" 
-                   {"target='_blank'" if project_data.get('slides', '#') != '#' else ""}
-                   class="inline-flex items-center px-4 py-2 {slides_class} rounded-lg transition duration-300">
-                    <i class="fas fa-presentation mr-2"></i> View Slides
-                </a>
-                {"<a href='" + project_data.get('demo', '#') + "' target='_blank' class='inline-flex items-center px-4 py-2 " + demo_class + " rounded-lg transition duration-300'><i class='fas fa-external-link-alt mr-2'></i> Live Demo</a>" if project_data.get('demo', '#') != '#' else ""}
-            </div>
-        </div>
-    </div>'''
 
 def generate_contact_html(contact_data, email):
     """Generate contact HTML from parsed contact data"""
@@ -781,6 +842,9 @@ def sync_student_data():
             if profile_path.exists():
                 metadata, content = parse_markdown_profile(profile_path)
                 
+                # Find all student files (images, PDFs)
+                student_files = find_student_files(student_dir, course_code, username)
+                
                 # Create student data entry
                 student_data = {
                     'username': username,
@@ -789,41 +853,13 @@ def sync_student_data():
                     'course': course_code,
                     'semester': metadata.get('semester', 'Spring 2025'),
                     'profilePath': f'regis_std/data/{course_code}/{username}/profile.md',
-                    'avatarPath': None,
+                    'avatarPath': student_files['avatar_url'],  # Direct URL
                     'projects': [],
-                    'files': []
+                    'files': student_files['pdfs'] + student_files['images']
                 }
                 
-                # Find avatar (prioritize webp)
-                for ext in ['webp', 'jpg', 'jpeg', 'png']:
-                    avatar_path = student_dir / f'avatar.{ext}'
-                    if avatar_path.exists():
-                        student_data['avatarPath'] = f'regis_std/data/{course_code}/{username}/avatar.{ext}'
-                        print(f"    📸 Found avatar: avatar.{ext}")
-                        break
-                
-                # Find project files
-                for pdf_file in student_dir.glob('*.pdf'):
-                    student_data['files'].append({
-                        'name': pdf_file.name,
-                        'path': f'regis_std/data/{course_code}/{username}/{pdf_file.name}',
-                        'type': 'pdf'
-                    })
-                    print(f"    📄 Found PDF: {pdf_file.name}")
-                
-                # Find image files
-                for img_file in student_dir.glob('*.{jpg,jpeg,png,webp}'):
-                    if img_file.name.startswith('avatar'):
-                        continue
-                    student_data['files'].append({
-                        'name': img_file.name,
-                        'path': f'regis_std/data/{course_code}/{username}/{img_file.name}',
-                        'type': 'image'
-                    })
-                    print(f"    🖼️  Found image: {img_file.name}")
-                
-                # Create HTML page for this student with embedded content
-                html_path = create_html_page(student_data, course_code, target_dir, content, metadata)
+                # Create HTML page for this student with all file links
+                html_path = create_html_page(student_data, course_code, target_dir, content, metadata, student_files)
                 student_data['profilePage'] = html_path
                 
                 course_students.append(student_data)
