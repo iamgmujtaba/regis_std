@@ -39,6 +39,31 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 
 *Please update this section with your actual skills and proficiency levels.*
 
+## MSDS 692 - Practicum I
+
+**Title:** Framework for NLP-Driven Insights into Patient-Centered Communication in Oncology
+
+**Semester:** Summer 2025
+
+**Tags:** Natural Language Processing
+
+**Abstract:** This project focuses on framework for nlp-driven insights into patient-centered communication in oncology. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [https://your-portfolio-site.com/profiles/gdonovan003#](https://your-portfolio-site.com/profiles/gdonovan003#)
+- Project Report: [Download Report](reports/gdonovan003_practicumi_report.pdf)
+- Presentation Slides: [View Slides](presentations/gdonovan003_practicumi_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+
 ## MSDS 696 - Practicum II
 
 **Title:** Building Analysis-Ready Data with a Multi-Stage Pipeline

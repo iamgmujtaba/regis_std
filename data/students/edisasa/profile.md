@@ -39,6 +39,31 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 
 *Please update this section with your actual skills and proficiency levels.*
 
+## MSDS 692 - Practicum I
+
+**Title:** Deep Learning for Retinal Disease Classification
+
+**Semester:** Summer 2025
+
+**Tags:** Deep Learning, Classification
+
+**Abstract:** This project focuses on deep learning for retinal disease classification. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [https://github.com/etanadisasa/Deep-learning-for-retinal-disease-classification](https://github.com/etanadisasa/Deep-learning-for-retinal-disease-classification)
+- Project Report: [Download Report](reports/edisasa_practicumi_report.pdf)
+- Presentation Slides: [View Slides](presentations/edisasa_practicumi_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+
 ## MSDS 696 - Practicum II
 
 **Title:** Multimodal Sentiment Analysis for Instagram Posts
