@@ -672,9 +672,12 @@ def process_csv_file(csv_path, base_path, json_only=False):
         if students_data:
             course_json = generate_course_json(students_data, course_info, csv_file)
             
-            # Save JSON file in root directory
+            # Save JSON file in data directory (not root)
             json_filename = f"{course_info['year']}_{course_info['semester']}_{course_info['course']}.json"
-            json_path = base_path / json_filename
+            json_path = base_path / 'data' / json_filename
+            
+            # Ensure data directory exists
+            json_path.parent.mkdir(parents=True, exist_ok=True)
             
             with open(json_path, 'w', encoding='utf-8') as f:
                 json.dump(course_json, f, indent=2, ensure_ascii=False)

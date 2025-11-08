@@ -62,10 +62,10 @@ def main():
     if success_count == len(csv_files):
         print(f"🎉 All JSON files generated successfully!")
         
-        # List generated JSON files
-        json_files = list(script_dir.parent.glob("*.json"))
+        # List generated JSON files in data directory
+        json_files = list((script_dir.parent / "data").glob("*.json"))
         if json_files:
-            print(f"\n📄 Generated JSON files:")
+            print(f"\n📄 Generated JSON files in data/ folder:")
             for json_file in json_files:
                 print(f"   • {json_file.name}")
         

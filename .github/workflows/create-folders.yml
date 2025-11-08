@@ -37,11 +37,18 @@ jobs:
         
     - name: Clean previous generated files
       run: |
-        # Remove any leftover folders and JSON files
+        # Remove any leftover folders and JSON files from both locations
         rm -rf data/2025_summer_*
         rm -rf data/students
         rm -f *.json
+        rm -f data/*.json
         echo "✅ Cleaned previous generated files"
+        
+    - name: Pull latest changes to avoid conflicts
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action - JSON Generator"
+        git pull --rebase origin main || echo "⚠️ Pull failed, continuing..."
         
     - name: Generate JSON from CSV
       run: |
@@ -64,14 +71,14 @@ jobs:
     - name: Verify JSON generation
       run: |
         echo "📋 Checking for generated JSON files..."
-        if ls *.json >/dev/null 2>&1; then
-          echo "✅ JSON files generated successfully:"
-          ls -la *.json
+        if ls data/*.json >/dev/null 2>&1; then
+          echo "✅ JSON files generated successfully in data/ folder:"
+          ls -la data/*.json
           
           # Show basic info about each JSON file
-          for json_file in *.json; do
+          for json_file in data/*.json; do
             echo ""
-            echo "📄 $json_file:"
+            echo "📄 $(basename $json_file):"
             if command -v jq >/dev/null 2>&1; then
               student_count=$(jq '.students | length' "$json_file" 2>/dev/null || echo "unknown")
               course_name=$(jq -r '.course.name' "$json_file" 2>/dev/null || echo "unknown")
@@ -82,24 +89,29 @@ jobs:
             fi
           done
         else
-          echo "❌ No JSON files were generated!"
-          echo "📋 Current directory contents:"
-          ls -la
+          echo "❌ No JSON files were generated in data/ folder!"
+          echo "📋 Current data/ directory contents:"
+          ls -la data/
           exit 1
         fi
         
     - name: Commit and push JSON files
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action - JSON Generator"
-        git add *.json
+        git add data/*.json
         if git diff --staged --quiet; then
           echo "📝 No new JSON files to commit"
         else
           # Count JSON files for commit message
-          json_count=$(ls *.json 2>/dev/null | wc -l)
+          json_count=$(ls data/*.json 2>/dev/null | wc -l)
           git commit -m "🎓 Auto-generate JSON files: $json_count course(s) - $(date +'%Y-%m-%d %H:%M UTC')"
-          git push
+          
+          # Try to push, handle conflicts gracefully
+          if ! git push; then
+            echo "⚠️ Push failed, trying to resolve conflicts..."
+            git pull --rebase origin main
+            git push
+          fi
+          
           echo "✅ Successfully pushed JSON files to repository"
           
           # Show what was committed
