@@ -3,20 +3,20 @@ name: Create Student Folders from CSV
 on:
   push:
     paths:
-      - 'data/**/*.csv'
+      - '*.csv'
+      - 'data/*.csv'
   workflow_dispatch:
     inputs:
-      csv_path:
-        description: 'Path to CSV file (e.g., data/MSDS696_S71_Data Science Practicum II_GradesExport_2025-11-05-18-14.csv)'
+      csv_file:
+        description: 'CSV file to process (e.g., 2025_Summer_MSDS692.csv)'
         required: false
         type: string
 
 permissions:
   contents: write
-  actions: read
 
 jobs:
-  create-folders:
+  create-student-folders:
     runs-on: ubuntu-latest
     
     steps:
@@ -26,27 +26,229 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
         
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pandas
+        pip install pandas PyYAML
         
-    - name: Create folder structure
+    - name: Auto-detect CSV files to process
+      if: github.event.inputs.csv_file == ''
       run: |
-        python scripts/create-structure.py "${{ github.event.inputs.csv_path || 'auto' }}"
+        echo "🔍 Auto-detecting CSV files..."
         
-    - name: Commit and push changes
+        # Look for CSV files in root and data/ directory
+        csv_files=$(find . -maxdepth 2 -name "*.csv" -type f | grep -E "(2024|2025|2026).*MSDS" | head -3)
+        
+        if [ -z "$csv_files" ]; then
+          echo "📄 No CSV files found matching pattern YYYY_*_MSDS*.csv"
+          echo "ℹ️  Expected format: 2025_Summer_MSDS692.csv or 2025_Fall_MSDS696.csv"
+          exit 0
+        else
+          echo "📊 Found CSV files to process:"
+          echo "$csv_files"
+          
+          # Process each CSV file
+          for csv_file in $csv_files; do
+            echo ""
+            echo "🔄 Processing: $csv_file"
+            python scripts/process_csv.py "$csv_file" --base-path .
+            
+            if [ $? -eq 0 ]; then
+              echo "✅ Successfully processed: $csv_file"
+            else
+              echo "❌ Failed to process: $csv_file"
+            fi
+          done
+        fi
+        
+    - name: Process specific CSV file (manual trigger)
+      if: github.event.inputs.csv_file != ''
+      run: |
+        csv_file="${{ github.event.inputs.csv_file }}"
+        echo "🔄 Processing manually specified CSV file: $csv_file"
+        
+        if [ -f "$csv_file" ]; then
+          python scripts/process_csv.py "$csv_file" --base-path .
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Successfully processed: $csv_file"
+          else
+            echo "❌ Failed to process: $csv_file"
+            exit 1
+          fi
+        else
+          echo "❌ CSV file not found: $csv_file"
+          echo "ℹ️  Make sure the file exists and path is correct"
+          echo "ℹ️  Example: 2025_Summer_MSDS692.csv"
+          exit 1
+        fi
+        
+    - name: Verify created folders
+      run: |
+        echo ""
+        echo "📋 === FOLDER CREATION SUMMARY ==="
+        
+        # Count student folders created
+        if [ -d "data" ]; then
+          folder_count=$(find data/ -type d -mindepth 2 -maxdepth 2 | wc -l)
+          echo "📁 Student folders created: $folder_count"
+          
+          # List course folders
+          echo ""
+          echo "📚 Course folders:"
+          find data/ -type d -mindepth 1 -maxdepth 1 | sed 's|data/||' | sort
+          
+          # Show sample student folders
+          echo ""
+          echo "👥 Sample student folders:"
+          find data/ -type d -mindepth 2 -maxdepth 2 | head -5 | while read folder; do
+            username=$(basename "$folder")
+            course=$(dirname "$folder" | sed 's|data/||')
+            echo "  - $username ($course)"
+          done
+          
+          if [ $folder_count -gt 5 ]; then
+            echo "  ... and $((folder_count - 5)) more students"
+          fi
+          
+          echo ""
+          echo "📋 Students can now:"
+          echo "  1. Navigate to their folder: data/COURSE/username/"
+          echo "  2. Edit their profile.md file"
+          echo "  3. Upload avatar.jpg (profile photo)"
+          echo "  4. Add reports/ and presentations/ files"
+          echo "  5. Commit and push changes"
+          echo ""
+          echo "🚀 Next: Student updates will trigger portfolio generation"
+          
+        else
+          echo "⚠️  No data directory found - no student folders were created"
+        fi
+        
+    - name: Commit new student folders
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add .
+        git config --local user.name "GitHub Action - Student Folder Creation"
+        
+        # Add all new student folders and files
+        git add data/
+        
+        # Check if there are changes to commit
         if git diff --staged --quiet; then
-          echo "No changes to commit"
+          echo "📁 No new student folders to commit"
         else
-          git commit -m "Auto-create student folders from CSV - $(date)"
-          git push
+          # Count the changes
+          new_folders=$(git diff --staged --name-only | grep -E "data/.*/.*/profile\.md$" | wc -l)
+          
+          commit_message="🎓 Create $new_folders student folders and templates"
+          commit_message="$commit_message
+
+Automatically generated from CSV upload:
+- Created organized student folders
+- Generated profile.md templates with student info
+- Set up asset directories (reports/, presentations/)
+- Ready for student customization
+
+Students: Edit your profile.md and upload your files!
+Generated at: $(date +'%Y-%m-%d %H:%M UTC')"
+
+          git commit -m "$commit_message"
+          git push origin main
+          
+          echo "✅ Successfully committed $new_folders new student folders"
+          echo ""
+          echo "📬 Notify your students that their folders are ready!"
+          echo "📖 Share the student guide: https://github.com/$(echo $GITHUB_REPOSITORY)/blob/main/README.md#-for-students-"
+        fi
+        
+    - name: Generate notification for instructor
+      run: |
+        echo ""
+        echo "📧 === INSTRUCTOR NOTIFICATION ==="
+        echo ""
+        echo "Dear Instructor,"
+        echo ""
+        echo "✅ Student folders have been successfully created from your CSV upload."
+        echo ""
+        
+        if [ -d "data" ]; then
+          folder_count=$(find data/ -type d -mindepth 2 -maxdepth 2 | wc -l)
+          echo "📊 Summary:"
+          echo "   - $folder_count student folders created"
+          echo "   - Profile templates generated with student information"
+          echo "   - Directory structure ready for student assets"
+          echo ""
+          echo "📋 Next Steps:"
+          echo "   1. Inform students their folders are ready"
+          echo "   2. Share repository access with students"
+          echo "   3. Provide students with the student guide"
+          echo ""
+          echo "🔗 Student Guide: https://github.com/$(echo $GITHUB_REPOSITORY)#-for-students-"
+          echo ""
+          echo "📁 Students can find their folders at:"
+          find data/ -type d -mindepth 2 -maxdepth 2 | head -3 | while read folder; do
+            username=$(basename "$folder")
+            course=$(dirname "$folder" | sed 's|data/||')
+            echo "   - $username: data/$course/$username/"
+          done
+          
+          if [ $folder_count -gt 3 ]; then
+            echo "   - ... and $((folder_count - 3)) more"
+          fi
+        fi
+        
+        echo ""
+        echo "🚀 When students update their profiles, the portfolio sync will run automatically."
+        echo ""
+        echo "Happy teaching!"
+        echo "Regis University Data Science Portfolio System"
+        
+    - name: Create issue for tracking (optional)
+      if: success()
+      continue-on-error: true
+      run: |
+        # Create a GitHub issue to track the new student batch
+        if [ -d "data" ]; then
+          folder_count=$(find data/ -type d -mindepth 2 -maxdepth 2 | wc -l)
+          course_folders=$(find data/ -type d -mindepth 1 -maxdepth 1 | sed 's|data/||' | sort | tr '\n' ', ' | sed 's/,$//')
+          
+          issue_body="## 🎓 New Student Batch Created
+
+**Created:** $(date +'%Y-%m-%d %H:%M UTC')
+**Students:** $folder_count
+**Courses:** $course_folders
+
+### 📋 Checklist for Instructor
+
+- [ ] Notify students that folders are ready
+- [ ] Share repository access with students  
+- [ ] Provide student guide link
+- [ ] Monitor student profile updates
+- [ ] Review portfolios when complete
+
+### 📁 Student Folders Created
+
+\`\`\`
+$(find data/ -type d -mindepth 2 -maxdepth 2 | head -10)
+\`\`\`
+
+### 🔗 Resources
+
+- [Student Guide](README.md#-for-students-)
+- [Faculty Guide](../instructor-guide.html)
+- [Portfolio Examples](../index.html)
+
+*This issue was auto-created by the folder creation workflow.*"
+
+          # Use GitHub CLI if available, otherwise skip
+          if command -v gh >/dev/null 2>&1; then
+            echo "$issue_body" | gh issue create --title "📚 Student Batch: $course_folders ($folder_count students)" --body-file -
+            echo "📝 Created tracking issue for this student batch"
+          else
+            echo "📝 GitHub CLI not available - skipping issue creation"
+          fi
         fi

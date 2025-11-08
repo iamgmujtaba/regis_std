@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+"""
+Enhanced Sync Script for Regis University Data Science Practicum
+Syncs student data from regis_std to main regis portfolio repository
+Converts markdown profiles to HTML and organizes data by semester
+"""
+
 import os
 import shutil
 import json
@@ -8,7 +15,7 @@ from datetime import datetime
 import re
 
 def parse_markdown_profile(md_path):
-    """Parse markdown profile and extract metadata"""
+    """Parse markdown profile and extract metadata and content"""
     with open(md_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -17,10 +24,11 @@ def parse_markdown_profile(md_path):
         parts = content.split('---', 2)
         if len(parts) >= 3:
             yaml_content = parts[1]
-            md_content = parts[2]
+            md_content = parts[2].strip()
             try:
                 metadata = yaml.safe_load(yaml_content)
-            except yaml.YAMLError:
+            except yaml.YAMLError as e:
+                print(f"    ⚠️  YAML parse error: {e}")
                 metadata = {}
         else:
             metadata = {}
@@ -31,57 +39,129 @@ def parse_markdown_profile(md_path):
     
     return metadata, md_content
 
+def clean_email(email):
+    """Clean email by removing worldclass subdomain"""
+    if not email:
+        return email
+    return email.replace('@worldclass.regis.edu', '@regis.edu')
+
 def find_student_files(student_dir, course_code, username):
-    """Find all student files (images, PDFs) and generate URLs"""
+    """Find all student files and generate proper URLs"""
     files = {
         'avatar_url': None,
+        'cv_url': None,
         'images': [],
-        'pdfs': []
+        'pdfs': [],
+        'reports': [],
+        'presentations': []
     }
     
-    # base_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}"
-    # base_url = f"https://github.com/iamgmujtaba/regis_std/blob/main/data/{course_code}/{username}"
+    # Base URL for raw GitHub content
     base_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/{course_code}/{username}"
-
+    
     # Find avatar (priority: webp > jpg > png)
     for ext in ['webp', 'jpg', 'jpeg', 'png']:
         avatar_path = student_dir / f'avatar.{ext}'
         if avatar_path.exists():
             files['avatar_url'] = f"{base_url}/avatar.{ext}"
-            print(f"    📸 Found avatar: avatar.{ext} -> {files['avatar_url']}")
+            print(f"    📸 Found avatar: avatar.{ext}")
             break
     
-    # Find all images
-    for img_file in student_dir.glob('*.{jpg,jpeg,png,webp}'):
-        if not img_file.name.startswith('avatar'):
-            img_url = f"{base_url}/{img_file.name}"
-            files['images'].append({
-                'name': img_file.name,
-                'url': img_url,
-                'type': 'image'
-            })
-            print(f"    🖼️  Found image: {img_file.name}")
+    # Find CV
+    cv_patterns = ['cv.pdf', f'{username}_cv.pdf', 'resume.pdf', f'{username}_resume.pdf']
+    for pattern in cv_patterns:
+        cv_path = student_dir / pattern
+        if cv_path.exists():
+            files['cv_url'] = f"{base_url}/{pattern}"
+            print(f"    📄 Found CV: {pattern}")
+            break
     
-    # Find all PDFs
+    # Find reports
+    reports_dir = student_dir / 'reports'
+    if reports_dir.exists():
+        for report_file in reports_dir.glob('*.pdf'):
+            files['reports'].append({
+                'name': report_file.name,
+                'url': f"{base_url}/reports/{report_file.name}",
+                'type': 'report'
+            })
+            print(f"    📊 Found report: {report_file.name}")
+    
+    # Find presentations
+    presentations_dir = student_dir / 'presentations'
+    if presentations_dir.exists():
+        for pres_file in presentations_dir.glob('*.pdf'):
+            files['presentations'].append({
+                'name': pres_file.name,
+                'url': f"{base_url}/presentations/{pres_file.name}",
+                'type': 'presentation'
+            })
+            print(f"    � Found presentation: {pres_file.name}")
+    
+    # Find other PDFs in root directory
     for pdf_file in student_dir.glob('*.pdf'):
-        pdf_url = f"{base_url}/{pdf_file.name}"
         files['pdfs'].append({
             'name': pdf_file.name,
-            'url': pdf_url,
+            'url': f"{base_url}/{pdf_file.name}",
             'type': 'pdf'
         })
         print(f"    📄 Found PDF: {pdf_file.name}")
     
+    # Find images
+    for img_file in student_dir.glob('*.{jpg,jpeg,png,webp}'):
+        if not img_file.name.startswith('avatar'):
+            files['images'].append({
+                'name': img_file.name,
+                'url': f"{base_url}/{img_file.name}",
+                'type': 'image'
+            })
+            print(f"    �️  Found image: {img_file.name}")
+    
     return files
 
+def parse_course_folder(folder_name):
+    """
+    Parse course folder name to extract course info
+    2025_summer_msds692 -> {year: 2025, semester: summer, course: msds692}
+    """
+    parts = folder_name.split('_')
+    
+    if len(parts) >= 3:
+        year = parts[0]
+        semester = parts[1].lower()
+        course = parts[2].lower()
+        
+        return {
+            'year': year,
+            'semester': semester,
+            'course': course.upper(),
+            'folder_name': folder_name,
+            'display_name': f"{course.upper()} - {semester.title()} {year}",
+            'is_practicum_1': 'msds692' in course.lower(),
+            'is_practicum_2': 'msds696' in course.lower()
+        }
+    else:
+        # Fallback parsing for legacy names
+        return {
+            'year': '2025',
+            'semester': 'spring',
+            'course': 'MSDS692',
+            'folder_name': folder_name,
+            'display_name': folder_name,
+            'is_practicum_1': True,
+            'is_practicum_2': False
+        }
+
 def parse_markdown_sections(content):
-    """Parse markdown content into sections exactly as students write them"""
+    """Parse markdown content into structured sections"""
     sections = {
         'about': '', 
-        'skills': [], 
+        'skills': {}, 
         'practicum1': {}, 
         'practicum2': {}, 
-        'contact': {}
+        'contact': {},
+        'experience': '',
+        'achievements': []
     }
     
     lines = content.split('\n')
@@ -89,56 +169,67 @@ def parse_markdown_sections(content):
     current_content = []
     
     for line in lines:
-        line = line.strip()
+        line_stripped = line.strip()
         
-        if line.startswith('## '):
+        if line_stripped.startswith('## '):
             # Save previous section
-            if current_section:
-                sections[current_section] = '\n'.join(current_content).strip()
+            if current_section and current_content:
+                section_content = '\n'.join(current_content).strip()
+                
+                if current_section == 'about':
+                    sections['about'] = section_content
+                elif current_section == 'skills':
+                    sections['skills'] = parse_skills_section(section_content)
+                elif current_section in ['practicum1', 'practicum2']:
+                    sections[current_section] = parse_project_section(section_content)
+                elif current_section == 'contact':
+                    sections['contact'] = parse_contact_section(section_content)
+                elif current_section == 'experience':
+                    sections['experience'] = section_content
+                elif current_section == 'achievements':
+                    sections['achievements'] = parse_achievements_section(section_content)
             
             # Start new section
-            section_name = line[3:].strip().lower()
+            section_name = line_stripped[3:].strip().lower()
             current_content = []
             
+            # Map section names
             if 'about' in section_name:
                 current_section = 'about'
             elif 'skill' in section_name:
                 current_section = 'skills'
-            elif 'practicum i' in section_name:
+            elif 'practicum i' in section_name or 'msds 692' in section_name:
                 current_section = 'practicum1'
-            elif 'practicum ii' in section_name:
+            elif 'practicum ii' in section_name or 'msds 696' in section_name:
                 current_section = 'practicum2'
             elif 'contact' in section_name:
                 current_section = 'contact'
+            elif 'experience' in section_name:
+                current_section = 'experience'
+            elif 'achievement' in section_name or 'award' in section_name:
+                current_section = 'achievements'
             else:
                 current_section = None
         else:
-            if current_section and line:
+            if current_section and line_stripped:
                 current_content.append(line)
     
     # Save last section
-    if current_section:
-        sections[current_section] = '\n'.join(current_content).strip()
-    
-    # Parse skills into structured format
-    if sections['skills']:
-        sections['skills'] = parse_skills_section(sections['skills'])
-    
-    # Parse project sections
-    if sections['practicum1']:
-        sections['practicum1'] = parse_project_section(sections['practicum1'])
-    
-    if sections['practicum2']:
-        sections['practicum2'] = parse_project_section(sections['practicum2'])
-    
-    # Parse contact section
-    if sections['contact']:
-        sections['contact'] = parse_contact_section(sections['contact'])
+    if current_section and current_content:
+        section_content = '\n'.join(current_content).strip()
+        if current_section == 'about':
+            sections['about'] = section_content
+        elif current_section == 'skills':
+            sections['skills'] = parse_skills_section(section_content)
+        elif current_section in ['practicum1', 'practicum2']:
+            sections[current_section] = parse_project_section(section_content)
+        elif current_section == 'contact':
+            sections['contact'] = parse_contact_section(section_content)
     
     return sections
 
 def parse_skills_section(skills_text):
-    """Parse skills section into categories"""
+    """Parse skills section into structured format"""
     skills = {}
     current_category = None
     
@@ -160,6 +251,7 @@ def parse_project_section(project_text):
         'tags': [],
         'abstract': '',
         'achievements': [],
+        'technologies': '',
         'github': '#',
         'report': '#',
         'slides': '#',
@@ -179,6 +271,8 @@ def parse_project_section(project_text):
         elif line.startswith('**Abstract:**'):
             project['abstract'] = line[13:].strip()
             current_field = 'abstract'
+        elif line.startswith('**Technologies Used:**') or line.startswith('**Technologies:**'):
+            project['technologies'] = line.split(':', 1)[1].strip()
         elif line.startswith('**Key Achievements:**'):
             current_field = 'achievements'
         elif line.startswith('**Links:**'):
@@ -188,29 +282,33 @@ def parse_project_section(project_text):
                 project['achievements'].append(line[2:].strip())
             elif current_field == 'links':
                 link_text = line[2:].strip()
-                if '[GitHub Repository]' in link_text:
-                    match = re.search(r'\[GitHub Repository\]\((.*?)\)', link_text)
+                # Parse various link formats
+                if 'github' in link_text.lower():
+                    match = re.search(r'\[(.*?)\]\((.*?)\)', link_text)
                     if match:
-                        project['github'] = match.group(1)
-                elif '[Project Report]' in link_text:
-                    match = re.search(r'\[Project Report\]\((.*?)\)', link_text)
+                        project['github'] = match.group(2)
+                elif 'report' in link_text.lower():
+                    match = re.search(r'\[(.*?)\]\((.*?)\)', link_text)
                     if match:
-                        project['report'] = match.group(1)
-                elif '[Presentation Slides]' in link_text:
-                    match = re.search(r'\[Presentation Slides\]\((.*?)\)', link_text)
+                        project['report'] = match.group(2)
+                elif 'slide' in link_text.lower() or 'presentation' in link_text.lower():
+                    match = re.search(r'\[(.*?)\]\((.*?)\)', link_text)
                     if match:
-                        project['slides'] = match.group(1)
-                elif '[Live Demo]' in link_text or '[Demo]' in link_text:
-                    match = re.search(r'\[.*?Demo.*?\]\((.*?)\)', link_text)
+                        project['slides'] = match.group(2)
+                elif 'demo' in link_text.lower():
+                    match = re.search(r'\[(.*?)\]\((.*?)\)', link_text)
                     if match:
-                        project['demo'] = match.group(1)
+                        project['demo'] = match.group(2)
         elif current_field == 'abstract' and line and not line.startswith('**'):
-            project['abstract'] += ' ' + line
+            if project['abstract']:
+                project['abstract'] += ' ' + line
+            else:
+                project['abstract'] = line
     
     return project
 
 def parse_contact_section(contact_text):
-    """Parse contact section"""
+    """Parse contact section with flexible format support"""
     contact = {
         'email': '',
         'linkedin': '#',
@@ -220,24 +318,352 @@ def parse_contact_section(contact_text):
     
     for line in contact_text.split('\n'):
         line = line.strip()
-        if line.startswith('**Email:**'):
-            contact['email'] = line[10:].strip()
-        elif line.startswith('**LinkedIn:**'):
-            match = re.search(r'\[.*?\]\((.*?)\)', line)
-            if match:
-                contact['linkedin'] = match.group(1)
-        elif line.startswith('**GitHub:**'):
-            match = re.search(r'\[.*?\]\((.*?)\)', line)
-            if match:
-                contact['github'] = match.group(1)
-        elif line.startswith('**Portfolio:**'):
-            match = re.search(r'\[.*?\]\((.*?)\)', line)
-            if match:
-                contact['portfolio'] = match.group(1)
+        
+        # Handle different markdown formats
+        if 'email' in line.lower() and ('@' in line):
+            # Extract email address
+            email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', line)
+            if email_match:
+                contact['email'] = clean_email(email_match.group())
+        
+        elif 'linkedin' in line.lower():
+            # Look for various LinkedIn patterns
+            if '[' in line and ']' in line and '(' in line and ')' in line:
+                # Markdown link format [text](url)
+                match = re.search(r'\[.*?\]\((.*?)\)', line)
+                if match and 'linkedin.com' in match.group(1):
+                    contact['linkedin'] = match.group(1)
+            else:
+                # Look for raw LinkedIn URL
+                linkedin_match = re.search(r'https?://[^\s]*linkedin\.com[^\s]*', line)
+                if linkedin_match:
+                    contact['linkedin'] = linkedin_match.group()
+                
+        elif 'github' in line.lower():
+            # Look for various GitHub patterns  
+            if '[' in line and ']' in line and '(' in line and ')' in line:
+                # Markdown link format [text](url)
+                match = re.search(r'\[.*?\]\((.*?)\)', line)
+                if match and 'github.com' in match.group(1):
+                    contact['github'] = match.group(1)
+            else:
+                # Look for raw GitHub URL
+                github_match = re.search(r'https?://[^\s]*github\.com[^\s]*', line)
+                if github_match:
+                    contact['github'] = github_match.group()
+        
+        elif ('portfolio' in line.lower() or 'website' in line.lower()) and 'http' in line:
+            # Look for portfolio/website URLs
+            if '[' in line and ']' in line and '(' in line and ')' in line:
+                # Markdown link format [text](url)  
+                match = re.search(r'\[.*?\]\((.*?)\)', line)
+                if match:
+                    contact['portfolio'] = match.group(1)
+            else:
+                # Look for raw URL
+                url_match = re.search(r'https?://[^\s]+', line)
+                if url_match:
+                    contact['portfolio'] = url_match.group()
     
     return contact
 
-def generate_project_html(project_data, title, gradient_color, student_files, course_code, username):
+def parse_achievements_section(achievements_text):
+    """Parse achievements section into list"""
+    achievements = []
+    for line in achievements_text.split('\n'):
+        line = line.strip()
+        if line.startswith('- '):
+            achievements.append(line[2:].strip())
+    return achievements
+
+def auto_detect_project_files(student_files, course_info, username, project_section):
+    """Auto-detect project files based on naming patterns"""
+    project_urls = {
+        'report': '#',
+        'slides': '#'
+    }
+    
+    # Determine if this is Practicum I or II
+    is_practicum_1 = course_info['is_practicum_1']
+    project_num = '1' if is_practicum_1 else '2'
+    
+    # Try to find report
+    for report_file in student_files['reports']:
+        filename = report_file['name'].lower()
+        if (f'practicum{project_num}' in filename or 
+            f'practicum_{project_num}' in filename or
+            f'practicum {project_num}' in filename or
+            'report' in filename):
+            project_urls['report'] = report_file['url']
+            break
+    
+    # Try to find presentation
+    for pres_file in student_files['presentations']:
+        filename = pres_file['name'].lower()
+        if (f'practicum{project_num}' in filename or 
+            f'practicum_{project_num}' in filename or
+            f'practicum {project_num}' in filename or
+            'slides' in filename or
+            'presentation' in filename):
+            project_urls['slides'] = pres_file['url']
+            break
+    
+    # Use URLs from markdown if available, otherwise use auto-detected
+    final_urls = {
+        'report': project_section.get('report', '#') if project_section.get('report', '#') != '#' else project_urls['report'],
+        'slides': project_section.get('slides', '#') if project_section.get('slides', '#') != '#' else project_urls['slides'],
+        'github': project_section.get('github', '#'),
+        'demo': project_section.get('demo', '#')
+    }
+    
+    return final_urls
+
+def create_html_page(student_data, course_info, target_dir, markdown_content, metadata, student_files):
+    """Create enhanced HTML page with proper Regis University branding"""
+    username = student_data['username']
+    name = metadata.get('name', student_data.get('name', 'Student Name'))
+    email = clean_email(metadata.get('email', student_data.get('email', 'student@regis.edu')))
+    
+    # Parse markdown sections
+    sections = parse_markdown_sections(markdown_content)
+    
+    # Create profiles directory
+    profiles_dir = target_dir / 'profiles'
+    profiles_dir.mkdir(exist_ok=True)
+    
+    # Generate project HTML with proper course context
+    project_section = sections['practicum1'] if course_info['is_practicum_1'] else sections['practicum2']
+    project_title = "MSDS 692 - Practicum I" if course_info['is_practicum_1'] else "MSDS 696 - Practicum II"
+    
+    # Auto-detect project files
+    project_urls = auto_detect_project_files(student_files, course_info, username, project_section)
+    
+    # Generate the project HTML
+    project_html = generate_enhanced_project_html(project_section, project_title, course_info, project_urls)
+    
+    # Generate skills and other sections
+    skills_html = generate_skills_html(sections['skills'])
+    about_html = format_about_text(sections['about'])
+    contact_html = generate_contact_html(sections['contact'], email)
+    
+    # Use avatar URL or create fallback
+    avatar_url = student_files['avatar_url'] or f"https://via.placeholder.com/200x200/1e40af/ffffff?text={name[0] if name else 'S'}"
+    
+    # CV URL
+    cv_url = student_files['cv_url'] or '#'
+    
+    html_content = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{name} - Regis University Data Science Student Portfolio">
+    <title>{name} - Regis University Data Science Portfolio</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {{
+            theme: {{
+                extend: {{
+                    colors: {{
+                        primary: '#1e40af',
+                        secondary: '#7c3aed',
+                        accent: '#06b6d4',
+                    }}
+                }}
+            }}
+        }}
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-user-graduate text-primary text-2xl mr-3"></i>
+                    <span class="font-bold text-xl text-gray-800">Regis University Portfolio</span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="../index.html" class="text-gray-700 hover:text-primary transition duration-300">
+                        <i class="fas fa-home mr-1"></i> Home
+                    </a>
+                    <a href="#about" class="text-gray-700 hover:text-primary transition duration-300">About</a>
+                    <a href="#projects" class="text-gray-700 hover:text-primary transition duration-300">Projects</a>
+                    <a href="#contact" class="text-gray-700 hover:text-primary transition duration-300">Contact</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-primary">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="../index.html" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">
+                    <i class="fas fa-home mr-1"></i> Home
+                </a>
+                <a href="#about" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">About</a>
+                <a href="#projects" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Projects</a>
+                <a href="#contact" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero/Profile Section -->
+    <section class="bg-gradient-to-r from-primary to-secondary py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                <!-- Profile Photo -->
+                <div class="flex-shrink-0">
+                    <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white">
+                        <img src="{avatar_url}" 
+                             alt="{name}" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://via.placeholder.com/200x200/1e40af/ffffff?text={name[0] if name else 'S'}'">
+                    </div>
+                </div>
+                
+                <!-- Profile Info -->
+                <div class="text-center md:text-left text-white">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-2">{name}</h1>
+                    <p class="text-xl text-blue-100 mb-2">Data Science Graduate Student</p>
+                    <p class="text-lg text-blue-200 mb-4">Regis University | {course_info['course']}</p>
+                    
+                    <!-- Social Links -->
+                    <div class="flex justify-center md:justify-start space-x-4 mb-4">
+                        <a href="{sections['contact'].get('github', '#')}" 
+                           target="_blank"
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                        <a href="{sections['contact'].get('linkedin', '#')}" 
+                           target="_blank"
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                        <a href="mailto:{email}" 
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                            <i class="fas fa-envelope text-xl"></i>
+                        </a>
+                        <a href="{cv_url}" 
+                           target="_blank"
+                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300 {'opacity-50 cursor-not-allowed' if cv_url == '#' else ''}">
+                            <i class="fas fa-file-pdf text-xl"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- Quick Links -->
+                    <div class="flex flex-wrap justify-center md:justify-start gap-3">
+                        <a href="{cv_url}" 
+                           target="_blank"
+                           class="{'bg-white text-primary' if cv_url != '#' else 'bg-gray-300 text-gray-600 cursor-not-allowed'} px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition duration-300 inline-flex items-center">
+                            <i class="fas fa-download mr-2"></i> Download CV
+                        </a>
+                        <a href="#contact" 
+                           class="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-primary transition duration-300 inline-flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Contact Me
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-16 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">About Me</h2>
+            <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+            
+            <div class="prose prose-lg max-w-none text-gray-700">
+                {about_html}
+            </div>
+
+            <!-- Skills Section -->
+            <div class="mt-12">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Technical Skills</h3>
+                {skills_html}
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Data Science Practicum Projects</h2>
+            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
+
+            {project_html}
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Get In Touch</h2>
+            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
+            {contact_html}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="mb-2">&copy; 2025 {name}. All rights reserved.</p>
+            <p class="text-gray-400 text-sm">Regis University Data Science Practicum Portfolio | Powered by GitHub Pages</p>
+            <div class="mt-4">
+                <a href="../index.html" class="text-gray-400 hover:text-white transition mx-2">
+                    <i class="fas fa-home mr-1"></i> Back to Main Page
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu Script -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {{
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }});
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {{
+            anchor.addEventListener('click', function (e) {{
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {{
+                    target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }}
+            }});
+        }});
+    </script>
+</body>
+</html>'''
+    
+    # Write the HTML file
+    html_file = profiles_dir / f'{username}.html'
+    with open(html_file, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    print(f"    🌐 Created HTML page: profiles/{username}.html")
+    
+    return f'profiles/{username}.html'
     """Generate project HTML with proper PDF links"""
     if not project_data or not project_data.get('title'):
         # Default project template
@@ -382,248 +808,6 @@ def generate_project_html(project_data, title, gradient_color, student_files, co
             </div>
         </div>
     </div>'''
-
-def create_html_page(student_data, course_code, target_dir, markdown_content, metadata, student_files):
-    """Create HTML page matching template.html exactly with proper file URLs"""
-    username = student_data['username']
-    first_name = metadata.get('firstName', 'Student')
-    last_name = metadata.get('lastName', 'Name')
-    email = metadata.get('email', 'student@regis.edu')
-    
-    # Parse markdown sections
-    sections = parse_markdown_sections(markdown_content)
-    
-    # Create profiles directory
-    profiles_dir = target_dir / 'profiles'
-    profiles_dir.mkdir(exist_ok=True)
-    
-    # Generate skills HTML
-    skills_html = generate_skills_html(sections['skills'])
-    
-    # Generate project HTML with file links
-    practicum1_html = generate_project_html(sections['practicum1'], 'Practicum I', 'primary', student_files, course_code, username)
-    practicum2_html = generate_project_html(sections['practicum2'], 'Practicum II', 'secondary', student_files, course_code, username)
-    
-    # Generate contact HTML
-    contact_html = generate_contact_html(sections['contact'], email)
-    
-    # Use the found avatar URL or fallback
-    avatar_url = student_files['avatar_url'] or f"https://via.placeholder.com/200x200/1e40af/ffffff?text={first_name[0]}{last_name[0]}"
-    
-    html_content = f'''<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{first_name} {last_name} - Student Portfolio">
-    <title>{first_name} {last_name} - Portfolio</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../assets/img/favicon.png">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="../assets/css/style.css">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {{
-            theme: {{
-                extend: {{
-                    colors: {{
-                        primary: '#1e40af',
-                        secondary: '#7c3aed',
-                        accent: '#06b6d4',
-                    }}
-                }}
-            }}
-        }}
-    </script>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation Bar -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-user-graduate text-primary text-2xl mr-3"></i>
-                    <span class="font-bold text-xl text-gray-800">My Portfolio</span>
-                </div>
-                <div class="hidden md:flex space-x-6">
-                    <a href="../index.html" class="text-gray-700 hover:text-primary transition duration-300">
-                        <i class="fas fa-home mr-1"></i> Home
-                    </a>
-                    <a href="#about" class="text-gray-700 hover:text-primary transition duration-300">About</a>
-                    <a href="#projects" class="text-gray-700 hover:text-primary transition duration-300">Projects</a>
-                    <a href="#contact" class="text-gray-700 hover:text-primary transition duration-300">Contact</a>
-                </div>
-                <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-gray-700 hover:text-primary">
-                        <i class="fas fa-bars text-2xl"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
-            <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="../index.html" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">
-                    <i class="fas fa-home mr-1"></i> Home
-                </a>
-                <a href="#about" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">About</a>
-                <a href="#projects" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Projects</a>
-                <a href="#contact" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Contact</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero/Profile Section -->
-    <section class="bg-gradient-to-r from-primary to-secondary py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row items-center justify-center gap-8">
-                <!-- Profile Photo -->
-                <div class="flex-shrink-0">
-                    <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white">
-                        <img src="{avatar_url}" 
-                             alt="{first_name} {last_name}" 
-                             class="w-full h-full object-cover"
-                             onerror="this.src='https://via.placeholder.com/200x200/1e40af/ffffff?text={first_name[0]}{last_name[0]}'">
-                    </div>
-                </div>
-                
-                <!-- Profile Info -->
-                <div class="text-center md:text-left text-white">
-                    <h1 class="text-4xl md:text-5xl font-bold mb-2">{first_name} {last_name}</h1>
-                    <p class="text-xl text-blue-100 mb-4">Data Science Student | Practicum Student</p>
-                    
-                    <!-- Social Links -->
-                    <div class="flex justify-center md:justify-start space-x-4 mb-4">
-                        <a href="{sections['contact'].get('github', '#')}" 
-                           target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
-                            <i class="fab fa-github text-xl"></i>
-                        </a>
-                        <a href="{sections['contact'].get('linkedin', '#')}" 
-                           target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
-                            <i class="fab fa-linkedin text-xl"></i>
-                        </a>
-                        <a href="mailto:{email}" 
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
-                            <i class="fas fa-envelope text-xl"></i>
-                        </a>
-                        <a href="#" 
-                           target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
-                            <i class="fas fa-file-pdf text-xl"></i>
-                        </a>
-                    </div>
-                    
-                    <!-- Quick Links -->
-                    <div class="flex flex-wrap justify-center md:justify-start gap-3">
-                        <a href="#" 
-                           target="_blank"
-                           class="bg-white text-primary px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition duration-300 inline-flex items-center">
-                            <i class="fas fa-download mr-2"></i> Download CV
-                        </a>
-                        <a href="#contact" 
-                           class="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-primary transition duration-300 inline-flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Contact Me
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about" class="py-16 bg-white">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">About Me</h2>
-            <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
-            
-            <div class="prose prose-lg max-w-none text-gray-700">
-                {format_about_text(sections['about'])}
-            </div>
-
-            <!-- Skills Section -->
-            <div class="mt-12">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Technical Skills</h3>
-                {skills_html}
-            </div>
-        </div>
-    </section>
-
-    <!-- Projects Section -->
-    <section id="projects" class="py-16 bg-gray-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Practicum Projects</h2>
-            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
-
-            {practicum1_html}
-            {practicum2_html}
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="py-16 bg-white">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Get In Touch</h2>
-            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
-            {contact_html}
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="mb-2">&copy; 2025 {first_name} {last_name}. All rights reserved.</p>
-            <p class="text-gray-400 text-sm">Practicum Portfolio | Powered by GitHub Pages</p>
-            <div class="mt-4">
-                <a href="../index.html" class="text-gray-400 hover:text-white transition mx-2">
-                    <i class="fas fa-home mr-1"></i> Back to Main Page
-                </a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Mobile Menu Script -->
-    <script>
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {{
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        }});
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {{
-            anchor.addEventListener('click', function (e) {{
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {{
-                    target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-                    // Close mobile menu if open
-                    document.getElementById('mobile-menu').classList.add('hidden');
-                }}
-            }});
-        }});
-    </script>
-</body>
-</html>'''
-    
-    # Write the HTML file
-    html_file = profiles_dir / f'{username}.html'
-    with open(html_file, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-    
-    print(f"    🌐 Created HTML page: profiles/{username}.html")
-    print(f"    📸 Avatar URL: {avatar_url}")
-    print(f"    📄 Found {len(student_files['pdfs'])} PDFs, {len(student_files['images'])} images")
-    
-    return f'profiles/{username}.html'
 
 def format_about_text(about_text):
     """Format about text as HTML paragraphs"""
@@ -860,8 +1044,11 @@ def sync_student_data():
                     'files': student_files['pdfs'] + student_files['images']
                 }
                 
+                # Create course info object for the function
+                course_info = parse_course_folder(course_code)
+                
                 # Create HTML page for this student with all file links
-                html_path = create_html_page(student_data, course_code, target_dir, content, metadata, student_files)
+                html_path = create_html_page(student_data, course_info, target_dir, content, metadata, student_files)
                 student_data['profilePage'] = html_path
                 
                 course_students.append(student_data)
@@ -908,6 +1095,158 @@ def sync_student_data():
         print(f"📁 Saved: {semester_json_path}")
 
     print(f"✅ Sync completed successfully!")
+
+def generate_enhanced_project_html(project_content, project_title, course_info, project_urls):
+    """Generate enhanced project HTML with proper course context"""
+    if not project_content:
+        return f'''
+        <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div class="bg-gray-100 rounded-lg p-8">
+                <i class="fas fa-graduation-cap text-4xl text-gray-400 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-600 mb-4">{project_title}</h3>
+                <p class="text-gray-500">Project information will be available soon.</p>
+                <small class="text-gray-400 block mt-2">{course_info['course']}</small>
+            </div>
+        </div>
+        '''
+    
+    # Extract project title from content if available
+    lines = project_content.strip().split('\n')
+    content_title = project_title
+    description_start = 0
+    
+    # Look for a title in the first few lines
+    for i, line in enumerate(lines[:3]):
+        if line.startswith('#'):
+            content_title = line.strip('#').strip() or project_title
+            description_start = i + 1
+            break
+        elif line.strip() and not line.startswith('-') and not line.startswith('*'):
+            content_title = line.strip() or project_title
+            description_start = i + 1
+            break
+    
+    # Get description
+    description_lines = lines[description_start:] if description_start < len(lines) else []
+    description = '\n'.join(description_lines).strip()
+    
+    # Convert markdown to HTML for description
+    description_html = description
+    if description:
+        # Simple markdown conversion
+        description_html = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', description)
+        description_html = re.sub(r'\*(.*?)\*', r'<em>\1</em>', description)
+        description_html = re.sub(r'`(.*?)`', r'<code class="bg-gray-100 px-1 py-0.5 rounded text-sm">\1</code>', description_html)
+        description_html = description_html.replace('\n\n', '</p><p class="mb-4">').replace('\n', '<br>')
+        description_html = f'<p class="mb-4">{description_html}</p>'
+    else:
+        description_html = '<p class="text-gray-600">Project details will be added soon.</p>'
+    
+    # Generate project links
+    links_html = ''
+    if any(project_urls.values()):
+        links_html = '<div class="flex flex-wrap gap-3 mt-6">'
+        
+        if project_urls['github']:
+            links_html += f'''
+            <a href="{project_urls['github']}" target="_blank" 
+               class="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition duration-300">
+                <i class="fab fa-github mr-2"></i> GitHub Repository
+            </a>
+            '''
+        
+        if project_urls['presentation']:
+            links_html += f'''
+            <a href="{project_urls['presentation']}" target="_blank"
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300">
+                <i class="fas fa-presentation-screen mr-2"></i> Presentation
+            </a>
+            '''
+        
+        if project_urls['report']:
+            links_html += f'''
+            <a href="{project_urls['report']}" target="_blank"
+               class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300">
+                <i class="fas fa-file-pdf mr-2"></i> Final Report
+            </a>
+            '''
+        
+        links_html += '</div>'
+    
+    # Generate course badge
+    course_badge = ''
+    if course_info['is_practicum_1']:
+        course_badge = '<span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">MSDS 692</span>'
+    else:
+        course_badge = '<span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">MSDS 696</span>'
+    
+    return f'''
+    <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition duration-300">
+        <div class="mb-4">
+            {course_badge}
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-4">{content_title}</h3>
+        <div class="text-gray-700 leading-relaxed mb-4">
+            {description_html}
+        </div>
+        {links_html}
+        <div class="mt-6 pt-4 border-t border-gray-200">
+            <small class="text-gray-500">
+                <i class="fas fa-university mr-1"></i>
+                Regis University | {course_info['course']} | {course_info['semester']}
+            </small>
+        </div>
+    </div>
+    '''
+
+def generate_project_html(project_data, title, gradient_color, student_files, course_code, username):
+    """Generate project HTML with course context (legacy function for compatibility)"""
+    # Convert to new format
+    course_info = {
+        'course': course_code,
+        'is_practicum_1': 'msds692' in course_code.lower(),
+        'semester': 'Current Semester'
+    }
+    
+    # Create project URLs
+    project_urls = {
+        'github': student_files.get('github_url'),
+        'presentation': student_files.get('presentation_url'),
+        'report': student_files.get('report_url')
+    }
+    
+    return generate_enhanced_project_html(project_data, title, course_info, project_urls)
+
+def format_about_text(about_content):
+    """Format about text as HTML"""
+    if not about_content:
+        return '''
+        <div class="text-center text-gray-500 py-8">
+            <i class="fas fa-user text-4xl mb-4"></i>
+            <p>About information will be available soon.</p>
+        </div>
+        '''
+    
+    # Simple markdown to HTML conversion
+    html_content = about_content
+    
+    # Convert markdown formatting
+    html_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html_content)
+    html_content = re.sub(r'\*(.*?)\*', r'<em>\1</em>', html_content)
+    html_content = re.sub(r'`(.*?)`', r'<code class="bg-gray-100 px-1 py-0.5 rounded text-sm">\1</code>', html_content)
+    
+    # Handle paragraphs
+    paragraphs = html_content.split('\n\n')
+    formatted_paragraphs = []
+    
+    for paragraph in paragraphs:
+        paragraph = paragraph.strip()
+        if paragraph:
+            # Replace single newlines with line breaks
+            paragraph = paragraph.replace('\n', '<br>')
+            formatted_paragraphs.append(f'<p class="mb-4">{paragraph}</p>')
+    
+    return '\n'.join(formatted_paragraphs) if formatted_paragraphs else '<p class="text-gray-600">About information will be available soon.</p>'
 
 if __name__ == "__main__":
     print("🔄 Starting enhanced sync process...")

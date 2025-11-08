@@ -1,4 +1,4 @@
-name: Sync Student Data to Main Portfolio
+name: Sync Student Profiles to Main Portfolio
 
 on:
   workflow_dispatch:
@@ -11,13 +11,13 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'data/**/*.md'
+      - 'data/**/profile.md'
       - 'data/**/*.jpg'
       - 'data/**/*.jpeg'
       - 'data/**/*.png'
       - 'data/**/*.webp'
       - 'data/**/*.pdf'
-      - 'scripts/**/*.py'
+      - 'scripts/sync-to-portfolio.py'
 
 permissions:
   contents: write
@@ -52,11 +52,42 @@ jobs:
           ${{ runner.os }}-apt-imagetools-
           ${{ runner.os }}-apt-
           
+    - name: Detect student profile updates
+      run: |
+        echo "🔍 Detecting updated student profiles..."
+        
+        # Check if there are any student profile files
+        if find data/ -name "profile.md" -type f | grep -q .; then
+          profile_count=$(find data/ -name "profile.md" -type f | wc -l)
+          echo "� Found $profile_count student profiles to sync"
+          
+          # List recently updated profiles (if git history available)
+          echo ""
+          echo "📝 Student profiles found:"
+          find data/ -name "profile.md" -type f | while read profile; do
+            course=$(echo "$profile" | cut -d'/' -f2)
+            username=$(echo "$profile" | cut -d'/' -f3)
+            echo "  - $username ($course)"
+          done
+        else
+          echo "⚠️  No student profiles found - nothing to sync"
+          echo "ℹ️  Students need to:"
+          echo "     1. Edit their profile.md files"
+          echo "     2. Add their photos and project files"
+          echo "     3. Commit and push changes"
+          exit 0
+        fi
     - name: Install image optimization tools
       run: |
         sudo apt-get update
         sudo apt-get install -y webp imagemagick
         echo "✅ Image optimization tools installed"
+        
+    - name: Install Python dependencies  
+      run: |
+        python -m pip install --upgrade pip
+        pip install PyYAML
+        echo "✅ Python dependencies installed"
         
     - name: Optimize student images
       run: |
@@ -75,7 +106,7 @@ jobs:
           
           echo "  📸 Processing: $input_file"
           
-          # Handle profile_avatar specifically
+          # Handle profile_avatar specifically (uploaded by students)
           if [[ "$name" == "profile_avatar" ]]; then
             # Create optimized avatar.webp (200x200 for profile photos)
             cwebp -q 90 -resize 200 200 "$input_file" -o "${dir}/avatar.webp"
@@ -90,17 +121,18 @@ jobs:
             echo "    🗑️  Removed original profile_avatar file"
             
           elif [[ "$name" == "avatar" ]]; then
-            # Handle existing avatar files
-            cwebp -q 90 -resize 200 200 "$input_file" -o "${dir}/avatar.webp"
-            echo "    ✅ Optimized existing avatar to WebP"
+            # Handle existing avatar files - create webp version
+            if [[ "$ext" != "webp" ]]; then
+              cwebp -q 90 -resize 200 200 "$input_file" -o "${dir}/avatar.webp"
+              echo "    ✅ Optimized existing avatar to WebP"
+            fi
             
           else
             # Handle other images (project images, etc.)
-            cwebp -q 85 -resize 800 600 "$input_file" -o "${dir}/${name}.webp"
-            echo "    ✅ Optimized ${name} to WebP (800x600)"
-            
-            # Keep original for now (students might reference it)
-            # Optionally: rm "$input_file" to remove original
+            if [[ "$ext" != "webp" ]]; then
+              cwebp -q 85 -resize 800 600 "$input_file" -o "${dir}/${name}.webp"
+              echo "    ✅ Optimized ${name} to WebP (800x600)"
+            fi
           fi
           
           return 0
@@ -127,7 +159,7 @@ jobs:
         if git diff --staged --quiet; then
           echo "📷 No image changes to commit"
         else
-          git commit -m "🖼️ Optimize images: Convert profile_avatar.jpg to avatar.webp and avatar.jpg"
+          git commit -m "🖼️ Auto-optimize images: Convert profile_avatar.jpg to avatar.webp and avatar.jpg ($(date +'%Y-%m-%d %H:%M UTC'))"
           git push origin main
           echo "✅ Pushed optimized images"
         fi
@@ -182,16 +214,20 @@ jobs:
           echo "⚠️ No profiles directory found"
         fi
         
-        # Check if semester data file exists
-        if [ -f "main-portfolio/data/students_msds696_s71.json" ]; then
-          echo "✅ Semester data file created"
-          # Show student count (only if jq is available)
-          if command -v jq >/dev/null 2>&1; then
-            student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
-            echo "📊 Processed $student_count students"
-          fi
+        # Check if semester data files exist
+        data_files=$(find main-portfolio/data -name "students_*.json" 2>/dev/null || echo "")
+        if [ ! -z "$data_files" ]; then
+          echo "✅ Semester data files created:"
+          for file in $data_files; do
+            basename "$file"
+            # Show student count if jq is available
+            if command -v jq >/dev/null 2>&1; then
+              student_count=$(jq '.students | length' "$file" 2>/dev/null || echo "unknown")
+              echo "   📊 Contains $student_count students"
+            fi
+          done
         else
-          echo "⚠️ Semester data file not found"
+          echo "⚠️ No semester data files found"
         fi
         
     - name: Commit and push to main portfolio
