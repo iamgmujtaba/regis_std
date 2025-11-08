@@ -1,0 +1,21 @@
+{
+  "last_processed": "2025-11-08T21:04:33.193864",
+  "note": "Students are stored in unified folders under data/students/",
+  "course_summaries": {
+    "2025_summer_msds692": {
+      "course_info": {
+        "year": "2025",
+        "semester": "summer",
+        "course": "msds692",
+        "folder_name": "2025_summer_msds692",
+        "display_name": "MSDS692 - Summer 2025"
+      },
+      "processed_at": "2025-11-08T21:04:33.193752",
+      "students_processed": 7,
+      "students_created": 7,
+      "errors": [],
+      "csv_file": "data/2025_Summer_MSDS692.csv",
+      "json_generated": false
+    }
+  }
+}
