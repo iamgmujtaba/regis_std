@@ -41,10 +41,27 @@ data/2025_summer_msds692/
     └── ...
 ```
 
+## 🚀 Usage
+
+### 💻 **Terminal Mode (Faculty/Local Development)**
+Creates student folders with example files + JSON data files:
+
 ```bash
+# Process CSV files and create student folders + JSON data
+python scripts\process_csv.py data\2025_Summer_MSDS692.csv
+python scripts\process_csv.py data\2025_Summer_MSDS696.csv
+
+# Generate HTML portfolios from student profiles
+python scripts\sync-to-portfolio.py
+```
+
+### 🤖 **GitHub Actions Mode (Automated Workflows)**
+Creates only JSON data files for automated processing:
+
+```bash
+# GitHub Actions mode - JSON files only (no student folders)
 python scripts\process_csv.py --json-only data\2025_Summer_MSDS692.csv
 python scripts\process_csv.py --json-only data\2025_Summer_MSDS696.csv
-python scripts\sync-to-portfolio.py
 ```
 
 

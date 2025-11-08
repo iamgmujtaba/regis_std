@@ -1,0 +1,172 @@
+{
+  "course": {
+    "code": "2025_SUMMER_MSDS696",
+    "name": "Data Science Practicum - MSDS696",
+    "semester": "Spring 2025",
+    "year": "2025",
+    "description": "Student portfolios for MSDS696 - Data Science Practicum course at Regis University."
+  },
+  "university": {
+    "name": "Regis University",
+    "phone": "(800) 388-2366",
+    "address": "3333 Regis Blvd, Denver, CO 80221",
+    "website": "https://www.regis.edu"
+  },
+  "students": [
+    {
+      "username": "ajensen008",
+      "name": "Amber Jensen",
+      "email": "ajensen008@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/ajensen008/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/ajensen008/avatar.jpg",
+      "files": [
+        {
+          "name": "ajensen008_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/ajensen008/ajensen008_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/ajensen008/ajensen008.html"
+    },
+    {
+      "username": "apochampally",
+      "name": "Abhilash Reddy Pochampally",
+      "email": "apochampally@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/apochampally/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/apochampally/avatar.jpg",
+      "files": [
+        {
+          "name": "apochampally_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/apochampally/apochampally_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/apochampally/apochampally.html"
+    },
+    {
+      "username": "chamel",
+      "name": "Chandon Hamel",
+      "email": "chamel@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/chamel/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/chamel/avatar.jpg",
+      "files": [
+        {
+          "name": "chamel_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/chamel/chamel_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/chamel/chamel.html"
+    },
+    {
+      "username": "edisasa",
+      "name": "Etana Disasa",
+      "email": "edisasa@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/edisasa/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/edisasa/avatar.jpg",
+      "files": [
+        {
+          "name": "edisasa_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/edisasa/edisasa_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/edisasa/edisasa.html"
+    },
+    {
+      "username": "gdonovan003",
+      "name": "Grace Donovan",
+      "email": "gdonovan003@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/gdonovan003/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/gdonovan003/avatar.jpg",
+      "files": [
+        {
+          "name": "gdonovan003_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/gdonovan003/gdonovan003_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/gdonovan003/gdonovan003.html"
+    },
+    {
+      "username": "jbishwakarma",
+      "name": "Jonish Bishwakarma",
+      "email": "jbishwakarma@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/jbishwakarma/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/jbishwakarma/avatar.jpg",
+      "files": [
+        {
+          "name": "jbishwakarma_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/jbishwakarma/jbishwakarma_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/jbishwakarma/jbishwakarma.html"
+    },
+    {
+      "username": "scard659",
+      "name": "Matthew Scardino",
+      "email": "scard659@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/scard659/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/scard659/avatar.jpg",
+      "files": [
+        {
+          "name": "scard659_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/scard659/scard659_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/scard659/scard659.html"
+    },
+    {
+      "username": "sjohnson047",
+      "name": "Reed Johnson",
+      "email": "sjohnson047@regis.edu",
+      "semester": "Spring 2025",
+      "profilePath": "regis_std/data/students/sjohnson047/profile.md",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/sjohnson047/avatar.jpg",
+      "files": [
+        {
+          "name": "sjohnson047_cv.pdf",
+          "url": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/sjohnson047/sjohnson047_cv.pdf",
+          "type": "pdf"
+        }
+      ],
+      "course": "2025_summer_msds696",
+      "projects": [],
+      "profilePage": "students/sjohnson047/sjohnson047.html"
+    }
+  ],
+  "spotlight": [],
+  "statistics": {
+    "totalStudents": 8,
+    "totalProjects": 8,
+    "lastUpdated": "2025-11-08T16:08:34.747594"
+  },
+  "metadata": {
+    "dataSource": "regis_std repository",
+    "syncedAt": "2025-11-08T16:08:34.747594",
+    "version": "1.0"
+  }
+}
