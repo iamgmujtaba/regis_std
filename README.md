@@ -41,6 +41,13 @@ data/2025_summer_msds692/
     └── ...
 ```
 
+```bash
+python scripts\process_csv.py --json-only data\2025_Summer_MSDS692.csv
+python scripts\process_csv.py --json-only data\2025_Summer_MSDS696.csv
+python scripts\sync-to-portfolio.py
+```
+
+
 ## � CSV Format
 
 ```csv

@@ -455,6 +455,31 @@ def create_student_folder_structure(base_path, student_data, course_info):
     else:
         print(f"    ⚠️  Warning: Default avatar not found at {avatar_source}")
     
+    # Copy example PDF files for students to replace
+    example_pdf_source = base_path / 'data' / 'example_pdf.pdf'
+    if example_pdf_source.exists():
+        # Create example files with proper naming for students to replace
+        example_files = [
+            # CV file
+            (student_dir / f'{username}_cv.pdf', 'CV'),
+            # Practicum I files
+            (student_dir / 'reports' / f'{username}_practicum1_report.pdf', 'Practicum I Report'),
+            (student_dir / 'presentations' / f'{username}_practicum1_slides.pdf', 'Practicum I Presentation'),
+            # Practicum II files  
+            (student_dir / 'reports' / f'{username}_practicum2_report.pdf', 'Practicum II Report'),
+            (student_dir / 'presentations' / f'{username}_practicum2_slides.pdf', 'Practicum II Presentation')
+        ]
+        
+        for dest_file, file_type in example_files:
+            if not dest_file.exists():
+                try:
+                    shutil.copy2(example_pdf_source, dest_file)
+                    print(f"    📄 Copied example PDF as {file_type}: {dest_file.name}")
+                except Exception as e:
+                    print(f"    ⚠️  Warning: Could not copy example PDF for {file_type}: {e}")
+    else:
+        print(f"    ⚠️  Warning: Example PDF not found at {example_pdf_source}")
+    
     # Handle profile.md creation/update
     profile_path = student_dir / 'profile.md'
     
@@ -518,25 +543,28 @@ def create_student_readme(student_data, course_info):
 - **Size:** Recommended 400x400px or larger, square format
 - **Format:** JPG, PNG, or WebP
 
-### Practicum I Report (MSDS 692)
-- **File name:** `{username}_practicum1_report.pdf`
-- **Location:** `reports/` folder
+### 📄 CV/Resume
+- **Current file:** `{username}_cv.pdf` ⚠️ **REPLACE THIS**
 - **Format:** PDF only
+- **Note:** This is an example file - replace with your actual CV
 
-### Practicum I Slides (MSDS 692)
-- **File name:** `{username}_practicum1_slides.pdf`  
-- **Location:** `presentations/` folder
+### 📊 Practicum I Files (MSDS 692)
+- **Report:** `reports/{username}_practicum1_report.pdf` ⚠️ **REPLACE THIS**
+- **Slides:** `presentations/{username}_practicum1_slides.pdf` ⚠️ **REPLACE THIS**
 - **Format:** PDF only
+- **Note:** These are example files - replace with your actual project files
 
-### Practicum II Report (MSDS 696)
-- **File name:** `{username}_practicum2_report.pdf`
-- **Location:** `reports/` folder
+### 📊 Practicum II Files (MSDS 696)
+- **Report:** `reports/{username}_practicum2_report.pdf` ⚠️ **REPLACE THIS**
+- **Slides:** `presentations/{username}_practicum2_slides.pdf` ⚠️ **REPLACE THIS**
 - **Format:** PDF only
+- **Note:** These are example files - replace with your actual project files
 
-### Practicum II Slides (MSDS 696)
-- **File name:** `{username}_practicum2_slides.pdf`  
-- **Location:** `presentations/` folder
-- **Format:** PDF only
+### 📸 Profile Photo
+- **File name:** `avatar.jpg`, `avatar.png`, or `avatar.webp`
+- **Size:** Recommended 400x400px or larger, square format
+- **Format:** JPG, PNG, or WebP
+- **Note:** Replace the default avatar with your professional photo
 
 ## ✏️ Unified Profile Structure
 
@@ -681,34 +709,35 @@ def process_csv_file(csv_path, base_path, json_only=False):
         print(f"❌ Error reading CSV file: {str(e)}")
         return False
     
-    # Generate JSON file for GitHub Actions
+    # Generate JSON file (always generate unless explicitly disabled)
     json_filename = None
-    if json_only:
-        print(f"🔍 JSON-only mode: Found {len(students_data)} students for JSON generation")
+    should_generate_json = True  # Always generate JSON by default
+    
+    print(f"🔍 Generating JSON file: Found {len(students_data)} students")
+    
+    if should_generate_json and students_data:
+        course_json = generate_course_json(students_data, course_info, csv_file)
         
-        if students_data:
-            course_json = generate_course_json(students_data, course_info, csv_file)
-            
-            # Save JSON file in data directory (not root)
-            json_filename = f"{course_info['year']}_{course_info['semester']}_{course_info['course']}.json"
-            json_path = base_path / 'data' / json_filename
-            
-            # Ensure data directory exists
-            json_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            with open(json_path, 'w', encoding='utf-8') as f:
-                json.dump(course_json, f, indent=2, ensure_ascii=False)
-            
-            print(f"📄 Generated JSON: {json_path}")
-            print(f"📊 JSON contains {len(course_json['students'])} students")
-        else:
-            print(f"⚠️  No students data found for JSON generation")
-            print(f"🔍 Debug info:")
-            print(f"   - Students processed: {students_processed}")
-            print(f"   - Errors: {len(errors)}")
-            if errors:
-                for error in errors:
-                    print(f"   - Error: {error}")
+        # Save JSON file in data directory (not root)
+        json_filename = f"{course_info['year']}_{course_info['semester']}_{course_info['course']}.json"
+        json_path = base_path / 'data' / json_filename
+        
+        # Ensure data directory exists
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(course_json, f, indent=2, ensure_ascii=False)
+        
+        print(f"📄 Generated JSON: {json_path}")
+        print(f"📊 JSON contains {len(course_json['students'])} students")
+    elif not students_data:
+        print(f"⚠️  No students data found for JSON generation")
+        print(f"🔍 Debug info:")
+        print(f"   - Students processed: {students_processed}")
+        print(f"   - Errors: {len(errors)}")
+        if errors:
+            for error in errors:
+                print(f"   - Error: {error}")
     
     # Create summary
     summary = {
@@ -758,17 +787,26 @@ def process_csv_file(csv_path, base_path, json_only=False):
     print(f"\n📊 Processing Summary:")
     print(f"   📁 Course: {course_info['display_name']}")
     print(f"   👥 Students processed: {students_processed}")
+    
     if json_only:
+        # GitHub Actions mode - JSON only
+        print(f"   🔧 Mode: GitHub Actions (JSON only)")
         if json_filename:
             print(f"   📄 JSON generated: {json_filename}")
             print(f"   ✅ Students in JSON: {students_created}")
         else:
             print(f"   ❌ JSON generation failed - no student data found")
     else:
-        print(f"   ✅ Profiles created/updated: {students_created}")
-        # print(f"   📄 Course summary saved: {summary_path}")
-        # print(f"   📄 Unified summary: {unified_summary_path}")
+        # Terminal mode - Both folders and JSON
+        print(f"   🔧 Mode: Terminal (Folders + JSON)")
+        print(f"   ✅ Student folders created: {students_created}")
         print(f"   📂 Student profiles location: data/students/")
+        if json_filename:
+            print(f"   📄 JSON generated: {json_filename}")
+            print(f"   🎯 Ready for HTML generation with sync script")
+        else:
+            print(f"   ❌ JSON generation failed")
+    
     print(f"   ❌ Errors: {len(errors)}")
     
     if errors:
@@ -880,11 +918,16 @@ def main():
     print(f"📄 CSV file: {args.csv_file}")
     
     if args.json_only:
-        print("📄 JSON-Only Mode - Generating JSON for GitHub Actions")
+        print("🤖 GitHub Actions Mode - Generating JSON files only")
+        print("   📄 Creates JSON data files for automated workflows")
+        print("   📂 No student folders created")
     elif args.dry_run:
         print("🔍 DRY RUN MODE - No files will be created")
     else:
-        print("📂 Folder Mode - Creating unified student profiles")
+        print("� Terminal Mode - Creating student folders + JSON files")
+        print("   📂 Creates student folders with example files")
+        print("   📄 Creates JSON data files")
+        print("   🎯 Ready for HTML generation")
     
     print("=" * 60)
     
@@ -897,12 +940,13 @@ def main():
     if success:
         print(f"\n🎉 Processing completed successfully!")
         if args.json_only:
-            print(f"� JSON files generated for GitHub Actions")
-            print(f"🚀 Ready for automated workflow processing")
+            print(f"🤖 GitHub Actions: JSON files generated for automated workflows")
+            print(f"🚀 Ready for automated portfolio generation")
         else:
-            print(f"�📂 Unified student profiles created in: data/students/")
-            print(f"📚 Each student has ONE profile that grows with both practica")
-            print(f"🔄 Run sync script next to generate HTML profiles")
+            print(f"� Terminal: Student folders + JSON files created")
+            print(f"📂 Student folders: data/students/")
+            print(f"� JSON files: data/")
+            print(f"🔄 Next step: Run sync script to generate HTML portfolios")
     else:
         print(f"\n❌ Processing failed!")
         return 1

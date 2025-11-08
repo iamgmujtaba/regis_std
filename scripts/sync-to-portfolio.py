@@ -376,8 +376,85 @@ def parse_achievements_section(achievements_text):
             achievements.append(line[2:].strip())
     return achievements
 
+def get_project_urls_from_json(username, is_practicum_1):
+    """Get project URLs from the JSON data files and check for local files"""
+    try:
+        # First check for local PDF files in student directory
+        student_dir = Path('data') / 'students' / username
+        project_num = '1' if is_practicum_1 else '2'
+        
+        local_report = student_dir / 'reports' / f'{username}_practicum{project_num}_report.pdf'
+        local_slides = student_dir / 'presentations' / f'{username}_practicum{project_num}_slides.pdf'
+        local_cv = student_dir / f'{username}_cv.pdf'
+        
+        # Base URL for raw GitHub content
+        base_url = f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/{username}"
+        
+        # Check if local files exist and create URLs
+        local_urls = {}
+        if local_report.exists():
+            local_urls['report'] = f"{base_url}/reports/{username}_practicum{project_num}_report.pdf"
+            print(f"    📄 Found local report: {local_report.name}")
+        
+        if local_slides.exists():
+            local_urls['slides'] = f"{base_url}/presentations/{username}_practicum{project_num}_slides.pdf"
+            local_urls['presentation'] = local_urls['slides']  # alias
+            print(f"    📄 Found local slides: {local_slides.name}")
+        
+        if local_cv.exists():
+            local_urls['cv'] = f"{base_url}/{username}_cv.pdf"
+            print(f"    📄 Found local CV: {local_cv.name}")
+        
+        # Now try to get URLs from JSON data
+        json_filename = "2025_summer_msds692.json" if is_practicum_1 else "2025_summer_msds696.json"
+        json_path = Path('data') / json_filename
+        
+        json_urls = {'github': '#', 'slides': '#', 'report': '#', 'demo': '#'}
+        
+        if json_path.exists():
+            with open(json_path, 'r', encoding='utf-8') as f:
+                course_data = json.load(f)
+            
+            # Find the student in the JSON data
+            for student in course_data.get('students', []):
+                if student.get('username') == username:
+                    json_urls.update({
+                        'github': student.get('github', '#'),
+                        'slides': student.get('slides', '#'),
+                        'report': student.get('report', '#'),
+                        'demo': student.get('demo', '#'),
+                        'presentation': student.get('slides', '#')  # alias for slides
+                    })
+                    break
+        
+        # Merge local and JSON URLs (local files take precedence for reports/slides)
+        final_urls = {
+            'github': json_urls.get('github', '#'),
+            'demo': json_urls.get('demo', '#'),
+            'slides': local_urls.get('slides', json_urls.get('slides', '#')),
+            'presentation': local_urls.get('presentation', json_urls.get('presentation', '#')),
+            'report': local_urls.get('report', json_urls.get('report', '#')),
+            'cv': local_urls.get('cv', '#')
+        }
+        
+        return final_urls
+        
+    except Exception as e:
+        print(f"    ⚠️  Error reading data for {username}: {e}")
+        return {'github': '#', 'slides': '#', 'report': '#', 'demo': '#', 'cv': '#'}
+
 def auto_detect_project_files(student_files, course_info, username, project_section):
-    """Auto-detect project files based on naming patterns"""
+    """Get project URLs from JSON data (preferred) or fall back to file detection"""
+    # First try to get URLs from JSON data
+    json_urls = get_project_urls_from_json(username, course_info['is_practicum_1'])
+    
+    # If we got valid URLs from JSON, use them
+    if any(url != '#' for url in json_urls.values()):
+        print(f"    📄 Using URLs from JSON data for {username}")
+        return json_urls
+    
+    # Fall back to original file detection logic
+    print(f"    🔍 Falling back to file detection for {username}")
     project_urls = {
         'report': '#',
         'slides': '#'
@@ -413,7 +490,8 @@ def auto_detect_project_files(student_files, course_info, username, project_sect
         'report': project_section.get('report', '#') if project_section.get('report', '#') != '#' else project_urls['report'],
         'slides': project_section.get('slides', '#') if project_section.get('slides', '#') != '#' else project_urls['slides'],
         'github': project_section.get('github', '#'),
-        'demo': project_section.get('demo', '#')
+        'demo': project_section.get('demo', '#'),
+        'presentation': project_section.get('slides', '#')  # alias for slides
     }
     
     return final_urls
@@ -434,15 +512,46 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     # Also create in profiles directory for GitHub Pages
     profiles_dir = target_dir.parent / 'profiles' if target_dir != Path('data') else None
     
-    # Generate project HTML with proper course context
-    project_section = sections['practicum1'] if course_info['is_practicum_1'] else sections['practicum2']
-    project_title = "MSDS 692 - Practicum I" if course_info['is_practicum_1'] else "MSDS 696 - Practicum II"
+    # Generate project HTML for ALL practicum experiences
+    projects_html = ""
     
-    # Auto-detect project files
-    project_urls = auto_detect_project_files(student_files, course_info, username, project_section)
+    # Check for MSDS692 (Practicum I)
+    if sections.get('practicum1') and sections['practicum1'].get('title'):
+        practicum1_course_info = {
+            'course': 'MSDS692',
+            'is_practicum_1': True,
+            'semester': 'Summer 2025'
+        }
+        practicum1_urls = auto_detect_project_files(student_files, practicum1_course_info, username, sections['practicum1'])
+        practicum1_html = generate_enhanced_project_html(sections['practicum1'], "MSDS 692 - Practicum I", practicum1_course_info, practicum1_urls)
+        projects_html += practicum1_html
     
-    # Generate the project HTML
-    project_html = generate_enhanced_project_html(project_section, project_title, course_info, project_urls)
+    # Check for MSDS696 (Practicum II)
+    if sections.get('practicum2') and sections['practicum2'].get('title'):
+        practicum2_course_info = {
+            'course': 'MSDS696',
+            'is_practicum_1': False,
+            'semester': 'Summer 2025'
+        }
+        practicum2_urls = auto_detect_project_files(student_files, practicum2_course_info, username, sections['practicum2'])
+        practicum2_html = generate_enhanced_project_html(sections['practicum2'], "MSDS 696 - Practicum II", practicum2_course_info, practicum2_urls)
+        projects_html += practicum2_html
+    
+    # If no projects found, show default message
+    if not projects_html:
+        projects_html = '''
+        <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div class="bg-gray-100 rounded-lg p-8">
+                <i class="fas fa-graduation-cap text-4xl text-gray-400 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-600 mb-4">Data Science Practicum Projects</h3>
+                <p class="text-gray-500">Project information will be available soon.</p>
+                <small class="text-gray-400 block mt-2">Please update your profile.md with project details</small>
+            </div>
+        </div>
+        '''
+    
+    # Use the combined projects HTML
+    project_html = projects_html
     
     # Generate skills and other sections
     skills_html = generate_skills_html(sections['skills'])
@@ -452,8 +561,16 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     # Use avatar URL or create fallback
     avatar_url = student_files['avatar_url'] or f"https://via.placeholder.com/200x200/1e40af/ffffff?text={name[0] if name else 'S'}"
     
-    # CV URL
-    cv_url = student_files['cv_url'] or '#'
+    # CV URL - try to get from local files or JSON data
+    cv_url = '#'
+    if sections.get('practicum1'):
+        practicum1_urls = auto_detect_project_files(student_files, {'is_practicum_1': True}, username, sections['practicum1'])
+        cv_url = practicum1_urls.get('cv', cv_url)
+    if cv_url == '#' and sections.get('practicum2'):
+        practicum2_urls = auto_detect_project_files(student_files, {'is_practicum_1': False}, username, sections['practicum2'])
+        cv_url = practicum2_urls.get('cv', cv_url)
+    if cv_url == '#':
+        cv_url = student_files['cv_url'] or '#'
     
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
