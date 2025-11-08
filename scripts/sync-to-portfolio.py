@@ -193,15 +193,15 @@ def parse_markdown_sections(content):
             section_name = line_stripped[3:].strip().lower()
             current_content = []
             
-            # Map section names
+            # Map section names (check more specific conditions first)
             if 'about' in section_name:
                 current_section = 'about'
             elif 'skill' in section_name:
                 current_section = 'skills'
-            elif 'practicum i' in section_name or 'msds 692' in section_name:
-                current_section = 'practicum1'
             elif 'practicum ii' in section_name or 'msds 696' in section_name:
                 current_section = 'practicum2'
+            elif 'practicum i' in section_name or 'msds 692' in section_name:
+                current_section = 'practicum1'
             elif 'contact' in section_name:
                 current_section = 'contact'
             elif 'experience' in section_name:
@@ -419,7 +419,7 @@ def auto_detect_project_files(student_files, course_info, username, project_sect
     return final_urls
 
 def create_html_page(student_data, course_info, target_dir, markdown_content, metadata, student_files):
-    """Create enhanced HTML page in the student's own directory"""
+    """Create enhanced HTML page in the student's own directory and optionally in profiles"""
     username = student_data['username']
     name = metadata.get('name', student_data.get('name', 'Student Name'))
     email = clean_email(metadata.get('email', student_data.get('email', 'student@regis.edu')))
@@ -427,8 +427,12 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     # Parse markdown sections
     sections = parse_markdown_sections(markdown_content)
     
-    # Student's directory path (where HTML will be saved)
-    student_dir = target_dir / 'students' / username
+    # Student's directory paths
+    local_student_dir = Path('data/students') / username
+    target_student_dir = target_dir / 'students' / username if target_dir != Path('data') else local_student_dir
+    
+    # Also create in profiles directory for GitHub Pages
+    profiles_dir = target_dir.parent / 'profiles' if target_dir != Path('data') else None
     
     # Generate project HTML with proper course context
     project_section = sections['practicum1'] if course_info['is_practicum_1'] else sections['practicum2']
@@ -655,12 +659,20 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
 </body>
 </html>'''
     
-    # Write the HTML file in the student's directory with username as filename
-    html_file = student_dir / f'{username}.html'
-    with open(html_file, 'w', encoding='utf-8') as f:
+    # Write the HTML file in the student's local directory
+    local_html_file = local_student_dir / f'{username}.html'
+    with open(local_html_file, 'w', encoding='utf-8') as f:
         f.write(html_content)
+    print(f"    🌐 Created local HTML: students/{username}/{username}.html")
     
-    print(f"    🌐 Created HTML page: students/{username}/{username}.html")
+    # Also copy to profiles directory for GitHub Pages (if target is different)
+    if profiles_dir:
+        profiles_dir.mkdir(exist_ok=True)
+        profiles_html_file = profiles_dir / f'{username}.html'
+        with open(profiles_html_file, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        print(f"    🌐 Created profile HTML: profiles/{username}.html")
+        return f'profiles/{username}.html'
     
     return f'students/{username}/{username}.html'
     """Generate project HTML with proper PDF links"""
@@ -985,18 +997,20 @@ def generate_contact_html(contact_data, email):
 def sync_student_data():
     """Sync student data and create HTML profiles from unified student directory"""
     
-    # Paths - work directly with the data directory
+    # Paths - check if we're running in GitHub Actions or locally
     source_dir = Path('data')
-    target_dir = Path('data')  # Create HTML in the same data directory
+    target_dir = Path('regis/data') if Path('regis').exists() else Path('data')
     
     if not source_dir.exists():
         print("❌ Source data directory not found")
         return
     
     print(f"📁 Processing unified student data from: {source_dir}")
-    print(f"📁 Creating HTML profiles in: {target_dir}")
+    print(f"📁 Syncing to: {target_dir}")
     
-    # No need to create profiles directory - HTML files go in student directories
+    # Ensure target directories exist
+    target_dir.mkdir(parents=True, exist_ok=True)
+    (target_dir.parent / 'profiles').mkdir(exist_ok=True)
     
     # Process unified student directory structure
     students_dir = source_dir / 'students'
@@ -1091,7 +1105,11 @@ def sync_student_data():
     
     for course_code, course_students, course_display in courses_data:
         if course_students:  # Only create JSON if there are students
-            semester_json_path = target_dir / f'{course_code}.json'
+            # Create JSON in local data directory
+            local_json_path = Path('data') / f'{course_code}.json'
+            
+            # Also create in target directory if different
+            target_json_path = target_dir / f'{course_code}.json'
             
             semester_data = {
                 'course': {
@@ -1121,12 +1139,18 @@ def sync_student_data():
                 }
             }
             
-            # Write semester-specific JSON file
-            with open(semester_json_path, 'w', encoding='utf-8') as f:
+            # Write JSON files
+            with open(local_json_path, 'w', encoding='utf-8') as f:
                 json.dump(semester_data, f, indent=2, ensure_ascii=False)
             
+            # Copy to target directory if different
+            if target_json_path != local_json_path:
+                with open(target_json_path, 'w', encoding='utf-8') as f:
+                    json.dump(semester_data, f, indent=2, ensure_ascii=False)
+                print(f"📁 Synced: {target_json_path}")
+            
             print(f"📊 Created {course_display} data file with {len(course_students)} students")
-            print(f"📁 Saved: {semester_json_path}")
+            print(f"📁 Saved: {local_json_path}")
         else:
             print(f"⏭️  No students found for {course_display}, skipping JSON creation")
     

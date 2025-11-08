@@ -393,7 +393,7 @@ def generate_course_json(students_data, course_info, csv_file):
             "name": student_data['Student Name'],
             "email": clean_email(student_data['Email']),
             "projectTitle": student_data['Project Title'],
-            "avatarPath": f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/msds696_s71/{username}/avatar.webp",  # Standard avatar path
+            "avatarPath": f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/{username}/avatar.webp",  # Standard avatar path
             "github": student_data.get('GitHub', '#') if (student_data.get('GitHub', '').strip() and not student_data.get('GitHub', '').startswith('https://your-portfolio-site.com')) else '#',
             "slides": student_data.get('Presentation', '#') if (student_data.get('Presentation', '').strip() and not student_data.get('Presentation', '').startswith('https://your-portfolio-site.com')) else '#',
             "report": student_data.get('Report', '#') if (student_data.get('Report', '').strip() and not student_data.get('Report', '').startswith('https://your-portfolio-site.com')) else '#',

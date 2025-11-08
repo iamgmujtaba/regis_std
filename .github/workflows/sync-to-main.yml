@@ -159,7 +159,7 @@ jobs:
       with:
         repository: 'iamgmujtaba/regis'
         token: ${{ secrets.PAT_TOKEN }}
-        path: 'main-portfolio'
+        path: 'regis'
         
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -193,36 +193,38 @@ jobs:
         echo "📋 Verifying generated files..."
         
         # Check if profiles directory exists and has files
-        if [ -d "main-portfolio/profiles" ]; then
-          profile_count=$(find main-portfolio/profiles -name "*.html" | wc -l)
+        if [ -d "regis/profiles" ]; then
+          profile_count=$(find regis/profiles -name "*.html" | wc -l)
           echo "✅ Generated $profile_count profile pages"
           
           # List generated profiles
           echo "📄 Generated profiles:"
-          find main-portfolio/profiles -name "*.html" -exec basename {} .html \; | sort
+          find regis/profiles -name "*.html" -exec basename {} .html \; | sort
         else
           echo "⚠️ No profiles directory found"
         fi
         
-        # Check if semester data files exist
-        data_files=$(find main-portfolio/data -name "students_*.json" 2>/dev/null || echo "")
-        if [ ! -z "$data_files" ]; then
-          echo "✅ Semester data files created:"
-          for file in $data_files; do
-            basename "$file"
-            # Show student count if jq is available
-            if command -v jq >/dev/null 2>&1; then
-              student_count=$(jq '.students | length' "$file" 2>/dev/null || echo "unknown")
-              echo "   📊 Contains $student_count students"
-            fi
-          done
-        else
-          echo "⚠️ No semester data files found"
+        # Check if course data files exist (new naming convention)
+        if [ -d "regis/data" ]; then
+          data_files=$(find regis/data -name "2025_summer_*.json" 2>/dev/null || echo "")
+          if [ ! -z "$data_files" ]; then
+            echo "✅ Course data files created:"
+            for file in $data_files; do
+              basename "$file"
+              # Show student count if jq is available
+              if command -v jq >/dev/null 2>&1; then
+                student_count=$(jq '.students | length' "$file" 2>/dev/null || echo "unknown")
+                echo "   📊 Contains $student_count students"
+              fi
+            done
+          else
+            echo "⚠️ No course data files found"
+          fi
         fi
         
     - name: Commit and push to main portfolio
       run: |
-        cd main-portfolio
+        cd regis
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action - Portfolio Sync"
         
@@ -235,11 +237,15 @@ jobs:
           echo "📝 No changes to commit to main portfolio"
         else
           # Get some stats for the commit message
-          if [ -f "data/students_msds696_s71.json" ]; then
-            if command -v jq >/dev/null 2>&1; then
-              student_count=$(jq '.students | length' data/students_msds696_s71.json 2>/dev/null || echo "unknown")
-            else
-              student_count="unknown"
+          if [ -f "data/2025_summer_msds692.json" ] || [ -f "data/2025_summer_msds696.json" ]; then
+            student_count=0
+            if [ -f "data/2025_summer_msds692.json" ] && command -v jq >/dev/null 2>&1; then
+              count692=$(jq '.students | length' data/2025_summer_msds692.json 2>/dev/null || echo 0)
+              student_count=$((student_count + count692))
+            fi
+            if [ -f "data/2025_summer_msds696.json" ] && command -v jq >/dev/null 2>&1; then
+              count696=$(jq '.students | length' data/2025_summer_msds696.json 2>/dev/null || echo 0)
+              student_count=$((student_count + count696))
             fi
             commit_msg="🎓 Auto-sync: Updated $student_count student profiles - $(date +'%Y-%m-%d %H:%M UTC')"
           else
@@ -261,25 +267,35 @@ jobs:
         echo "⏰ Sync completed at: $(date)"
         echo ""
         
-        # Count students processed
-        if [ -f "main-portfolio/data/students_msds696_s71.json" ]; then
-          if command -v jq >/dev/null 2>&1; then
-            student_count=$(jq '.students | length' main-portfolio/data/students_msds696_s71.json)
-            echo "👥 Students processed: $student_count"
-            
-            # List students
-            echo "📋 Student list:"
-            jq -r '.students[] | "  - " + .name + " (" + .username + ")"' main-portfolio/data/students_msds696_s71.json | sort
-          else
-            echo "👥 Students processed: (jq not available for count)"
-          fi
+        # Count students processed from both courses
+        total_students=0
+        
+        if [ -f "regis/data/2025_summer_msds692.json" ] && command -v jq >/dev/null 2>&1; then
+          count692=$(jq '.students | length' regis/data/2025_summer_msds692.json)
+          echo "👥 MSDS 692 students: $count692"
+          total_students=$((total_students + count692))
+          
+          echo "📋 MSDS 692 students:"
+          jq -r '.students[] | "  - " + .name + " (" + .username + ")"' regis/data/2025_summer_msds692.json | sort
+          echo ""
         fi
         
+        if [ -f "regis/data/2025_summer_msds696.json" ] && command -v jq >/dev/null 2>&1; then
+          count696=$(jq '.students | length' regis/data/2025_summer_msds696.json)
+          echo "👥 MSDS 696 students: $count696"
+          total_students=$((total_students + count696))
+          
+          echo "� MSDS 696 students:"
+          jq -r '.students[] | "  - " + .name + " (" + .username + ")"' regis/data/2025_summer_msds696.json | sort
+          echo ""
+        fi
+        
+        echo "👥 Total students processed: $total_students"
         echo ""
         
         # Count profile pages
-        if [ -d "main-portfolio/profiles" ]; then
-          profile_count=$(find main-portfolio/profiles -name "*.html" | wc -l)
+        if [ -d "regis/profiles" ]; then
+          profile_count=$(find regis/profiles -name "*.html" | wc -l)
           echo "📄 Profile pages generated: $profile_count"
         fi
         
@@ -287,8 +303,8 @@ jobs:
         
         # Show URLs where profiles will be available
         echo "🌐 Profile URLs (after GitHub Pages deployment):"
-        if [ -d "main-portfolio/profiles" ]; then
-          find main-portfolio/profiles -name "*.html" -exec basename {} .html \; | sort | while read username; do
+        if [ -d "regis/profiles" ]; then
+          find regis/profiles -name "*.html" -exec basename {} .html \; | sort | while read username; do
             echo "  - https://gmujtaba.com/regis/profiles/$username.html"
           done
         fi
