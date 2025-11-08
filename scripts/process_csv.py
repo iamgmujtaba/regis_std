@@ -665,17 +665,30 @@ def process_csv_file(csv_path, base_path, json_only=False):
         return False
     
     # Generate JSON file for GitHub Actions
-    if json_only and students_data:
-        course_json = generate_course_json(students_data, course_info, csv_file)
+    json_filename = None
+    if json_only:
+        print(f"🔍 JSON-only mode: Found {len(students_data)} students for JSON generation")
         
-        # Save JSON file in root directory
-        json_filename = f"{course_info['year']}_{course_info['semester']}_{course_info['course']}.json"
-        json_path = base_path / json_filename
-        
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(course_json, f, indent=2, ensure_ascii=False)
-        
-        print(f"📄 Generated JSON: {json_path}")
+        if students_data:
+            course_json = generate_course_json(students_data, course_info, csv_file)
+            
+            # Save JSON file in root directory
+            json_filename = f"{course_info['year']}_{course_info['semester']}_{course_info['course']}.json"
+            json_path = base_path / json_filename
+            
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(course_json, f, indent=2, ensure_ascii=False)
+            
+            print(f"📄 Generated JSON: {json_path}")
+            print(f"📊 JSON contains {len(course_json['students'])} students")
+        else:
+            print(f"⚠️  No students data found for JSON generation")
+            print(f"🔍 Debug info:")
+            print(f"   - Students processed: {students_processed}")
+            print(f"   - Errors: {len(errors)}")
+            if errors:
+                for error in errors:
+                    print(f"   - Error: {error}")
     
     # Create summary
     summary = {
@@ -685,7 +698,7 @@ def process_csv_file(csv_path, base_path, json_only=False):
         'students_created': students_created,
         'errors': errors,
         'csv_file': str(csv_file),
-        'json_generated': json_only
+        'json_generated': json_only and json_filename is not None
     }
     
     # Save processing summary only if not json_only mode
@@ -726,8 +739,11 @@ def process_csv_file(csv_path, base_path, json_only=False):
     print(f"   📁 Course: {course_info['display_name']}")
     print(f"   👥 Students processed: {students_processed}")
     if json_only:
-        print(f"   📄 JSON generated: {json_filename}")
-        print(f"   ✅ Students in JSON: {students_created}")
+        if json_filename:
+            print(f"   📄 JSON generated: {json_filename}")
+            print(f"   ✅ Students in JSON: {students_created}")
+        else:
+            print(f"   ❌ JSON generation failed - no student data found")
     else:
         print(f"   ✅ Profiles created/updated: {students_created}")
         print(f"   📄 Course summary saved: {summary_path}")

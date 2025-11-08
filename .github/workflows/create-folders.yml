@@ -1,4 +1,4 @@
-name: Create Student Folders from CSV
+name: Generate Student JSON from CSV
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
       - 'data/**/*.csv'
   workflow_dispatch:
     inputs:
-      csv_path:
-        description: 'Path to CSV file (e.g., data/2025_Summer_MSDS692.csv)'
-        required: false
+      csv_file:
+        description: 'CSV file name (e.g., 2025_Summer_MSDS692.csv)'
+        required: true
         type: string
 
 permissions:
@@ -16,7 +16,7 @@ permissions:
   actions: read
 
 jobs:
-  create-folders:
+  generate-json:
     runs-on: ubuntu-latest
     
     steps:
@@ -33,20 +33,76 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pandas
+        # No additional dependencies needed for JSON generation
         
-    - name: Create folder structure
+    - name: Clean previous generated files
       run: |
-        python scripts/process_csv.py "${{ github.event.inputs.csv_path || 'auto' }}"
+        # Remove any leftover folders and JSON files
+        rm -rf data/2025_summer_*
+        rm -rf data/students
+        rm -f *.json
+        echo "✅ Cleaned previous generated files"
         
-    - name: Commit and push changes
+    - name: Generate JSON from CSV
+      run: |
+        if [ -n "${{ github.event.inputs.csv_file }}" ]; then
+          # Manual dispatch - process specific file
+          csv_path="data/${{ github.event.inputs.csv_file }}"
+          echo "🔄 Processing specific file: $csv_path"
+          if [ -f "$csv_path" ]; then
+            python scripts/process_csv.py --json-only "$csv_path"
+          else
+            echo "❌ File not found: $csv_path"
+            exit 1
+          fi
+        else
+          # Auto trigger - process all CSV files
+          echo "🔄 Auto-processing all CSV files in data/"
+          python scripts/generate_json.py
+        fi
+        
+    - name: Verify JSON generation
+      run: |
+        echo "📋 Checking for generated JSON files..."
+        if ls *.json >/dev/null 2>&1; then
+          echo "✅ JSON files generated successfully:"
+          ls -la *.json
+          
+          # Show basic info about each JSON file
+          for json_file in *.json; do
+            echo ""
+            echo "📄 $json_file:"
+            if command -v jq >/dev/null 2>&1; then
+              student_count=$(jq '.students | length' "$json_file" 2>/dev/null || echo "unknown")
+              course_name=$(jq -r '.course.name' "$json_file" 2>/dev/null || echo "unknown")
+              echo "   Course: $course_name"
+              echo "   Students: $student_count"
+            else
+              echo "   Size: $(wc -c < "$json_file") bytes"
+            fi
+          done
+        else
+          echo "❌ No JSON files were generated!"
+          echo "📋 Current directory contents:"
+          ls -la
+          exit 1
+        fi
+        
+    - name: Commit and push JSON files
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add .
+        git config --local user.name "GitHub Action - JSON Generator"
+        git add *.json
         if git diff --staged --quiet; then
-          echo "No changes to commit"
+          echo "📝 No new JSON files to commit"
         else
-          git commit -m "Auto-create student folders from CSV - $(date)"
+          # Count JSON files for commit message
+          json_count=$(ls *.json 2>/dev/null | wc -l)
+          git commit -m "🎓 Auto-generate JSON files: $json_count course(s) - $(date +'%Y-%m-%d %H:%M UTC')"
           git push
+          echo "✅ Successfully pushed JSON files to repository"
+          
+          # Show what was committed
+          echo "📊 Committed files:"
+          git show --name-only HEAD
         fi
