@@ -10,7 +10,7 @@ graduation: "May 2026"
 major: "Data Science"
 degree: "Master of Science in Data Science"
 university: "Regis University"
-current_course: "MSDS 692"
+current_course: "MSDS 696"
 current_semester: "Summer 2025"
 ---
 
@@ -39,15 +39,15 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 
 *Please update this section with your actual skills and proficiency levels.*
 
-## MSDS 692 - Practicum I
+## MSDS 696 - Practicum II
 
-**Title:** Framework for NLP-Driven Insights into Patient-Centered Communication in Oncology
+**Title:** Building Analysis-Ready Data with a Multi-Stage Pipeline
 
 **Semester:** Summer 2025
 
-**Tags:** Natural Language Processing
+**Tags:** Data Analysis
 
-**Abstract:** This project focuses on framework for nlp-driven insights into patient-centered communication in oncology. Please update this section with a detailed description of your project, methodology, and key findings.
+**Abstract:** This project focuses on building analysis-ready data with a multi-stage pipeline. Please update this section with a detailed description of your project, methodology, and key findings.
 
 **Key Achievements:**
 - Please add your key project achievements
@@ -58,8 +58,8 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 
 **Links:**
 - GitHub Repository: [https://your-portfolio-site.com/profiles/gdonovan003#](https://your-portfolio-site.com/profiles/gdonovan003#)
-- Project Report: [Download Report](reports/gdonovan003_practicumi_report.pdf)
-- Presentation Slides: [View Slides](presentations/gdonovan003_practicumi_slides.pdf)
+- Project Report: [Download Report](reports/gdonovan003_practicumii_report.pdf)
+- Presentation Slides: [View Slides](presentations/gdonovan003_practicumii_slides.pdf)
 
 *Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
 
