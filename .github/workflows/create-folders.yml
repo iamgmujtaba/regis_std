@@ -170,7 +170,7 @@ Generated at: $(date +'%Y-%m-%d %H:%M UTC')"
           echo "✅ Successfully committed $new_folders new student folders"
           echo ""
           echo "📬 Notify your students that their folders are ready!"
-          echo "📖 Share the student guide: https://github.com/$(echo $GITHUB_REPOSITORY)/blob/main/README.md#-for-students-"
+          echo "📖 Share the student guide: https://github.com/$(echo \$GITHUB_REPOSITORY)/blob/main/README.md#-for-students-"
         fi
         
     - name: Generate notification for instructor
@@ -195,7 +195,7 @@ Generated at: $(date +'%Y-%m-%d %H:%M UTC')"
           echo "   2. Share repository access with students"
           echo "   3. Provide students with the student guide"
           echo ""
-          echo "🔗 Student Guide: https://github.com/$(echo $GITHUB_REPOSITORY)#-for-students-"
+          echo "🔗 Student Guide: https://github.com/$(echo \$GITHUB_REPOSITORY)#-for-students-"
           echo ""
           echo "📁 Students can find their folders at:"
           find data/ -type d -mindepth 2 -maxdepth 2 | head -3 | while read folder; do
