@@ -77,10 +77,25 @@ def generate_fallback_url(base_url, field_name):
     """Generate fallback URL that redirects to profile"""
     return f"{base_url}#"  # Will redirect to profile page
 
-def create_markdown_profile(student_data, course_info):
+def load_existing_profile(profile_path):
+    """Load existing profile and extract practicum data"""
+    if not profile_path.exists():
+        return None, []
+    
+    with open(profile_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Extract existing practicum sections
+    import re
+    practicum_pattern = r'## (MSDS \d+) - Practicum ([IV]+)\n\n(.*?)(?=\n## |$)'
+    existing_practica = re.findall(practicum_pattern, content, re.DOTALL)
+    
+    return content, existing_practica
+
+def create_markdown_profile(student_data, course_info, existing_content=None, existing_practica=None):
     """
-    Create initial markdown profile from CSV data
-    Students will enhance this later
+    Create or update markdown profile from CSV data
+    Handles multiple practicum experiences in one profile
     """
     name = student_data['Student Name']
     email = clean_email(student_data['Email'])
@@ -101,6 +116,36 @@ def create_markdown_profile(student_data, course_info):
     # Generate tags based on project title
     tags = extract_project_tags(project_title)
     
+    # If updating existing profile, parse and merge
+    if existing_content and existing_practica:
+        return update_existing_profile(existing_content, existing_practica, student_data, course_info, practicum_number, project_title, tags)
+    
+    # Create new profile with current practicum
+    current_practicum_section = f'''## {course_number} - Practicum {practicum_number}
+
+**Title:** {project_title}
+
+**Semester:** {course_info['semester'].title()} {course_info['year']}
+
+**Tags:** {', '.join(tags)}
+
+**Abstract:** This project focuses on {project_title.lower()}. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [{github if github else 'Add your GitHub link'}]({github if github else '#'})
+- Project Report: [Download Report](reports/{username}_practicum{practicum_number.lower()}_report.pdf)
+- Presentation Slides: [View Slides](presentations/{username}_practicum{practicum_number.lower()}_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+'''
+
     markdown_content = f'''---
 name: "{name}"
 firstName: "{first_name}"
@@ -109,17 +154,17 @@ email: "{email}"
 username: "{username}"
 github: "{username}"
 linkedin: "{username}"
-course: "{course_number}"
-semester: "{course_info['semester'].title()} {course_info['year']}"
 graduation: "May {int(course_info['year']) + 1}"
 major: "Data Science"
 degree: "Master of Science in Data Science"
 university: "Regis University"
+current_course: "{course_number}"
+current_semester: "{course_info['semester'].title()} {course_info['year']}"
 ---
 
 ## About Me
 
-I am a dedicated Data Science graduate student at Regis University, currently completing my {practicum_number} practicum experience. My focus is on applying data science techniques to solve real-world problems and gain practical experience in the field.
+I am a dedicated Data Science graduate student at Regis University. My focus is on applying data science techniques to solve real-world problems and gain practical experience in the field.
 
 *Please update this section with your personal background, interests, and career goals.*
 
@@ -142,27 +187,7 @@ I am a dedicated Data Science graduate student at Regis University, currently co
 
 *Please update this section with your actual skills and proficiency levels.*
 
-## {course_number} - Practicum {practicum_number}
-
-**Title:** {project_title}
-
-**Tags:** {', '.join(tags)}
-
-**Abstract:** This project focuses on {project_title.lower()}. Please update this section with a detailed description of your project, methodology, and key findings.
-
-**Key Achievements:**
-- Please add your key project achievements
-- Include quantifiable results where possible
-- Highlight technical innovations or challenges overcome
-
-**Technologies Used:** Please list the main technologies and tools used in your project
-
-**Links:**
-- GitHub Repository: [{github if github else 'Add your GitHub link'}]({github if github else '#'})
-- Project Report: [Download Report](../reports/{username}_practicum{practicum_number.lower()}_report.pdf)
-- Presentation Slides: [View Slides](../presentations/{username}_practicum{practicum_number.lower()}_slides.pdf)
-
-*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+{current_practicum_section}
 
 ## Contact
 
@@ -182,6 +207,93 @@ I am a dedicated Data Science graduate student at Regis University, currently co
 '''
     
     return markdown_content
+
+def update_existing_profile(existing_content, existing_practica, student_data, course_info, practicum_number, project_title, tags):
+    """Update existing profile with new practicum information"""
+    import re
+    
+    username = student_data['Username']
+    github = student_data.get('GitHub', '')
+    course_number = "MSDS 692" if 'msds692' in course_info['course'].lower() else "MSDS 696"
+    
+    # Check if this practicum already exists
+    practicum_exists = any(p[0] == course_number for p in existing_practica)
+    
+    if practicum_exists:
+        # Update existing practicum section
+        pattern = rf'(## {course_number} - Practicum {practicum_number}\n\n)(.*?)(?=\n## |$)'
+        
+        new_section = f'''## {course_number} - Practicum {practicum_number}
+
+**Title:** {project_title}
+
+**Semester:** {course_info['semester'].title()} {course_info['year']}
+
+**Tags:** {', '.join(tags)}
+
+**Abstract:** This project focuses on {project_title.lower()}. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [{github if github else 'Add your GitHub link'}]({github if github else '#'})
+- Project Report: [Download Report](reports/{username}_practicum{practicum_number.lower()}_report.pdf)
+- Presentation Slides: [View Slides](presentations/{username}_practicum{practicum_number.lower()}_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+'''
+        
+        updated_content = re.sub(pattern, new_section, existing_content, flags=re.DOTALL)
+    else:
+        # Add new practicum section before Contact section
+        new_section = f'''## {course_number} - Practicum {practicum_number}
+
+**Title:** {project_title}
+
+**Semester:** {course_info['semester'].title()} {course_info['year']}
+
+**Tags:** {', '.join(tags)}
+
+**Abstract:** This project focuses on {project_title.lower()}. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [{github if github else 'Add your GitHub link'}]({github if github else '#'})
+- Project Report: [Download Report](reports/{username}_practicum{practicum_number.lower()}_report.pdf)
+- Presentation Slides: [View Slides](presentations/{username}_practicum{practicum_number.lower()}_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+'''
+        
+        # Insert before Contact section
+        contact_pattern = r'(\n## Contact\n)'
+        if re.search(contact_pattern, existing_content):
+            updated_content = re.sub(contact_pattern, f'\n{new_section}\n## Contact\n', existing_content)
+        else:
+            # If no Contact section found, append at end
+            updated_content = existing_content.rstrip() + '\n\n' + new_section
+    
+    # Update frontmatter with current course info
+    frontmatter_pattern = r'(current_course: ".*?")'
+    updated_content = re.sub(frontmatter_pattern, f'current_course: "{course_number}"', updated_content)
+    
+    frontmatter_pattern = r'(current_semester: ".*?")'
+    updated_content = re.sub(frontmatter_pattern, f'current_semester: "{course_info["semester"].title()} {course_info["year"]}"', updated_content)
+    
+    return updated_content
 
 def extract_project_tags(project_title):
     """
@@ -245,22 +357,81 @@ def extract_project_tags(project_title):
     
     return tags[:5]  # Limit to 5 tags
 
+def generate_course_json(students_data, course_info, csv_file):
+    """
+    Generate JSON structure for GitHub Actions processing
+    This JSON will be used to create the unified student profiles
+    """
+    # Map course code for JSON
+    course_code = "MSDS692" if 'msds692' in course_info['course'].lower() else "MSDS696"
+    practicum_name = "Data Science Practicum I" if 'msds692' in course_info['course'].lower() else "Data Science Practicum II"
+    
+    # Determine term code (this might need adjustment based on your term system)
+    term_suffix = "8W1" if 'msds692' in course_info['course'].lower() else "8W2"
+    term_code = f"{course_info['year'][2:]}SU{term_suffix}"  # e.g., "25SU8W1"
+    
+    course_json = {
+        "course": {
+            "code": course_code,
+            "name": practicum_name,
+            "semester": course_info['semester'].title(),
+            "year": course_info['year'],
+            "term": term_code,
+            "description": f"{'Foundational' if 'msds692' in course_info['course'].lower() else 'Advanced'} practicum experience focusing on real-world data science applications {'and methodology' if 'msds692' in course_info['course'].lower() else 'and industry partnerships'}."
+        },
+        "students": []
+    }
+    
+    # Add students
+    for student_data in students_data:
+        username = student_data['Username']
+        
+        # Build student JSON structure
+        student_json = {
+            "username": username,
+            "name": student_data['Student Name'],
+            "email": clean_email(student_data['Email']),
+            "projectTitle": student_data['Project Title'],
+            "avatarPath": f"https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/msds696_s71/{username}/avatar.webp",  # Standard avatar path
+            "github": student_data.get('GitHub', '#') if (student_data.get('GitHub', '').strip() and not student_data.get('GitHub', '').startswith('https://your-portfolio-site.com')) else '#',
+            "slides": student_data.get('Presentation', '#') if (student_data.get('Presentation', '').strip() and not student_data.get('Presentation', '').startswith('https://your-portfolio-site.com')) else '#',
+            "report": student_data.get('Report', '#') if (student_data.get('Report', '').strip() and not student_data.get('Report', '').startswith('https://your-portfolio-site.com')) else '#',
+            "profilePage": f"profiles/{username}.html"
+        }
+        
+        # Add optional fields if they exist
+        optional_fields = ['Blog', 'Demo', 'Other']
+        for field in optional_fields:
+            if (field in student_data and 
+                student_data[field] and 
+                student_data[field].strip() and 
+                student_data[field] != '#' and 
+                not student_data[field].startswith('https://your-portfolio-site.com')):
+                student_json[field.lower()] = student_data[field]
+        
+        course_json["students"].append(student_json)
+    
+    return course_json
+
 def create_student_folder_structure(base_path, student_data, course_info):
     """
-    Create folder structure for student:
-    data/2025_summer_msds692/username/
-    ├── profile.md
-    ├── avatar.jpg (placeholder)
+    Create unified folder structure for student (works across multiple courses):
+    data/students/username/
+    ├── profile.md (unified profile with all practica)
+    ├── avatar.jpg
     ├── reports/
+    │   ├── username_practicum1_report.pdf
+    │   └── username_practicum2_report.pdf
     ├── presentations/
+    │   ├── username_practicum1_slides.pdf
+    │   └── username_practicum2_slides.pdf
     ├── assets/
     └── README.md
     """
     username = student_data['Username']
-    folder_name = course_info['folder_name']
     
-    # Create main student directory
-    student_dir = base_path / 'data' / folder_name / username
+    # Create unified student directory (not course-specific)
+    student_dir = base_path / 'data' / 'students' / username
     student_dir.mkdir(parents=True, exist_ok=True)
     
     # Create subdirectories
@@ -268,19 +439,25 @@ def create_student_folder_structure(base_path, student_data, course_info):
     for subdir in subdirs:
         (student_dir / subdir).mkdir(exist_ok=True)
     
-    # Create profile.md
-    profile_content = create_markdown_profile(student_data, course_info)
+    # Handle profile.md creation/update
     profile_path = student_dir / 'profile.md'
     
-    # Only create if doesn't exist (don't overwrite student edits)
-    if not profile_path.exists():
-        with open(profile_path, 'w', encoding='utf-8') as f:
-            f.write(profile_content)
-        print(f"    📝 Created profile.md for {username}")
-    else:
-        print(f"    ⚠️  profile.md already exists for {username}, skipping...")
+    # Load existing profile if it exists
+    existing_content, existing_practica = load_existing_profile(profile_path)
     
-    # Create README.md for student instructions
+    # Create or update profile content
+    if existing_content:
+        profile_content = create_markdown_profile(student_data, course_info, existing_content, existing_practica)
+        print(f"    📝 Updated profile.md for {username} with {course_info['course'].upper()}")
+    else:
+        profile_content = create_markdown_profile(student_data, course_info)
+        print(f"    📝 Created profile.md for {username}")
+    
+    # Write profile content
+    with open(profile_path, 'w', encoding='utf-8') as f:
+        f.write(profile_content)
+    
+    # Create/update README.md
     readme_content = create_student_readme(student_data, course_info)
     readme_path = student_dir / 'README.md'
     with open(readme_path, 'w', encoding='utf-8') as f:
@@ -289,33 +466,33 @@ def create_student_folder_structure(base_path, student_data, course_info):
     return student_dir
 
 def create_student_readme(student_data, course_info):
-    """Create README with instructions for students"""
+    """Create README with instructions for students - updated for unified profile"""
     username = student_data['Username']
-    course_number = "MSDS 692" if 'msds692' in course_info['course'].lower() else "MSDS 696"
-    practicum_number = "I" if 'msds692' in course_info['course'].lower() else "II"
     
-    return f'''# {student_data['Student Name']} - {course_number} Portfolio
+    return f'''# {student_data['Student Name']} - Data Science Portfolio
 
-## 📁 Folder Structure
+## 📁 Unified Portfolio Structure
 
 ```
 {username}/
-├── profile.md          # Your profile page content (edit this!)
+├── profile.md          # Your unified profile (contains all practica)
 ├── avatar.jpg          # Your profile photo
 ├── reports/
-│   └── {username}_practicum{practicum_number.lower()}_report.pdf
+│   ├── {username}_practicum1_report.pdf  # MSDS 692 report
+│   └── {username}_practicum2_report.pdf  # MSDS 696 report
 ├── presentations/
-│   └── {username}_practicum{practicum_number.lower()}_slides.pdf
+│   ├── {username}_practicum1_slides.pdf  # MSDS 692 slides
+│   └── {username}_practicum2_slides.pdf  # MSDS 696 slides
 └── assets/
     └── (additional files)
 ```
 
 ## 🚀 Getting Started
 
-1. **Edit your profile.md** - Update with your actual information
+1. **Edit your profile.md** - Contains ALL your practicum experiences
 2. **Upload your avatar** - Add `avatar.jpg` (or `avatar.png`, `avatar.webp`)
-3. **Upload your report** - Add PDF to `reports/` folder
-4. **Upload your presentation** - Add PDF to `presentations/` folder
+3. **Upload reports** - Use consistent naming: `practicum1` for MSDS 692, `practicum2` for MSDS 696
+4. **Upload presentations** - Use consistent naming convention
 5. **Add any additional assets** - Use `assets/` folder for extra files
 
 ## 📋 Required Files
@@ -325,41 +502,63 @@ def create_student_readme(student_data, course_info):
 - **Size:** Recommended 400x400px or larger, square format
 - **Format:** JPG, PNG, or WebP
 
-### Project Report  
-- **File name:** `{username}_practicum{practicum_number.lower()}_report.pdf`
+### Practicum I Report (MSDS 692)
+- **File name:** `{username}_practicum1_report.pdf`
 - **Location:** `reports/` folder
 - **Format:** PDF only
 
-### Presentation Slides
-- **File name:** `{username}_practicum{practicum_number.lower()}_slides.pdf`  
+### Practicum I Slides (MSDS 692)
+- **File name:** `{username}_practicum1_slides.pdf`  
 - **Location:** `presentations/` folder
 - **Format:** PDF only
 
-## ✏️ Editing Your Profile
+### Practicum II Report (MSDS 696)
+- **File name:** `{username}_practicum2_report.pdf`
+- **Location:** `reports/` folder
+- **Format:** PDF only
+
+### Practicum II Slides (MSDS 696)
+- **File name:** `{username}_practicum2_slides.pdf`  
+- **Location:** `presentations/` folder
+- **Format:** PDF only
+
+## ✏️ Unified Profile Structure
 
 Your `profile.md` file contains:
 - Personal information (name, email, etc.)
 - About Me section
 - Skills and technologies
-- Project details and abstract
+- **MSDS 692 - Practicum I** section
+- **MSDS 696 - Practicum II** section (added automatically when you take the second course)
 - Contact information
 
-**Important:** Update all placeholder text with your actual information!
+**Benefits of Unified Profile:**
+- ✅ One profile to maintain
+- ✅ Shows progression from Practicum I to II
+- ✅ Employers see complete journey
+- ✅ No duplicate information
 
 ## 🔗 Links to Update
 
 Make sure to update these in your `profile.md`:
-- GitHub repository URLs
+- GitHub repository URLs for both practica
 - LinkedIn profile
 - Personal website/portfolio
 - Any demo/project links
 
 ## 📤 File Upload Tips
 
-1. **Keep file names consistent** with the naming convention above
-2. **Use descriptive names** for files in the `assets/` folder
+1. **Use consistent naming** - `practicum1` for MSDS 692, `practicum2` for MSDS 696
+2. **One profile file** - All practicum info goes in `profile.md`
 3. **Optimize file sizes** - compress large PDFs and images
 4. **Test all links** in your profile.md file
+
+## 🔄 Course Progression
+
+**First time (MSDS 692):** Profile created with Practicum I section
+**Second time (MSDS 696):** Profile updated to include Practicum II section
+
+Your profile automatically evolves as you progress through the program!
 
 ## 🆘 Need Help?
 
@@ -378,9 +577,11 @@ Your profile will automatically sync to the main portfolio site when you:
 *Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}*
 '''
 
-def process_csv_file(csv_path, base_path):
+def process_csv_file(csv_path, base_path, json_only=False):
     """
-    Process CSV file and create student folder structures
+    Process CSV file and either:
+    1. Generate JSON files for GitHub Actions (json_only=True)
+    2. Create student folder structures (json_only=False, original behavior)
     """
     csv_file = Path(csv_path)
     
@@ -400,6 +601,7 @@ def process_csv_file(csv_path, base_path):
     students_processed = 0
     students_created = 0
     errors = []
+    students_data = []
     
     try:
         with open(csv_file, 'r', encoding='utf-8') as f:
@@ -436,13 +638,21 @@ def process_csv_file(csv_path, base_path):
                         if field not in row or not row[field].strip():
                             row[field] = generate_fallback_url(profile_base, field)
                     
-                    # Create student folder structure
-                    student_dir = create_student_folder_structure(base_path, row, course_info)
+                    # Store student data for JSON generation
+                    students_data.append(row)
+                    
+                    if not json_only:
+                        # Create student folder structure (original behavior)
+                        student_dir = create_student_folder_structure(base_path, row, course_info)
+                        
+                        if student_dir:
+                            students_created += 1
+                            print(f"✅ Created: {row['Student Name']} ({username})")
+                    else:
+                        students_created += 1
+                        print(f"✅ Processed: {row['Student Name']} ({username})")
                     
                     students_processed += 1
-                    if student_dir:
-                        students_created += 1
-                        print(f"✅ Created: {row['Student Name']} ({username})")
                     
                 except Exception as e:
                     error_msg = f"Row {row_num}: Error processing {row.get('Student Name', 'Unknown')}: {str(e)}"
@@ -454,6 +664,19 @@ def process_csv_file(csv_path, base_path):
         print(f"❌ Error reading CSV file: {str(e)}")
         return False
     
+    # Generate JSON file for GitHub Actions
+    if json_only and students_data:
+        course_json = generate_course_json(students_data, course_info, csv_file)
+        
+        # Save JSON file in root directory
+        json_filename = f"{course_info['year']}_{course_info['semester']}_{course_info['course']}.json"
+        json_path = base_path / json_filename
+        
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(course_json, f, indent=2, ensure_ascii=False)
+        
+        print(f"📄 Generated JSON: {json_path}")
+    
     # Create summary
     summary = {
         'course_info': course_info,
@@ -461,23 +684,56 @@ def process_csv_file(csv_path, base_path):
         'students_processed': students_processed,
         'students_created': students_created,
         'errors': errors,
-        'csv_file': str(csv_file)
+        'csv_file': str(csv_file),
+        'json_generated': json_only
     }
     
-    # Save processing summary
-    summary_path = base_path / 'data' / course_info['folder_name'] / '_processing_summary.json'
-    summary_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    with open(summary_path, 'w', encoding='utf-8') as f:
-        json.dump(summary, f, indent=2, ensure_ascii=False)
+    # Save processing summary only if not json_only mode
+    if not json_only:
+        # Save processing summary (keep course-specific summaries for tracking)
+        summary_path = base_path / 'data' / course_info['folder_name'] / '_processing_summary.json'
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(summary_path, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
+        
+        # Also save a unified summary
+        unified_summary_path = base_path / 'data' / 'students' / '_processing_summary.json'
+        unified_summary = {
+            'last_processed': datetime.now().isoformat(),
+            'note': 'Students are stored in unified folders under data/students/',
+            'course_summaries': {
+                course_info['folder_name']: summary
+            }
+        }
+        
+        # Load existing unified summary if it exists
+        if unified_summary_path.exists():
+            with open(unified_summary_path, 'r', encoding='utf-8') as f:
+                existing_unified = json.load(f)
+                if 'course_summaries' not in existing_unified:
+                    existing_unified['course_summaries'] = {}
+                existing_unified['course_summaries'][course_info['folder_name']] = summary
+                existing_unified['last_processed'] = datetime.now().isoformat()
+                unified_summary = existing_unified
+        
+        unified_summary_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(unified_summary_path, 'w', encoding='utf-8') as f:
+            json.dump(unified_summary, f, indent=2, ensure_ascii=False)
     
     # Print summary
     print(f"\n📊 Processing Summary:")
     print(f"   📁 Course: {course_info['display_name']}")
     print(f"   👥 Students processed: {students_processed}")
-    print(f"   ✅ Folders created: {students_created}")
+    if json_only:
+        print(f"   📄 JSON generated: {json_filename}")
+        print(f"   ✅ Students in JSON: {students_created}")
+    else:
+        print(f"   ✅ Profiles created/updated: {students_created}")
+        print(f"   📄 Course summary saved: {summary_path}")
+        print(f"   📄 Unified summary: {unified_summary_path}")
+        print(f"   📂 Student profiles location: data/students/")
     print(f"   ❌ Errors: {len(errors)}")
-    print(f"   📄 Summary saved: {summary_path}")
     
     if errors:
         print(f"\n⚠️  Errors encountered:")
@@ -486,12 +742,86 @@ def process_csv_file(csv_path, base_path):
     
     return True
 
+def migrate_existing_folders(base_path):
+    """
+    Migrate existing course-specific folders to unified student structure
+    Call this function to migrate from old structure to new unified structure
+    """
+    data_path = base_path / 'data'
+    students_path = data_path / 'students'
+    
+    # Find existing course folders
+    course_folders = []
+    for item in data_path.iterdir():
+        if item.is_dir() and item.name != 'students' and not item.name.startswith('_'):
+            course_folders.append(item)
+    
+    if not course_folders:
+        print("No existing course folders found to migrate.")
+        return
+    
+    print(f"🔄 Found {len(course_folders)} course folders to migrate:")
+    for folder in course_folders:
+        print(f"   📁 {folder.name}")
+    
+    students_migrated = 0
+    
+    for course_folder in course_folders:
+        print(f"\n📂 Processing {course_folder.name}...")
+        
+        for student_folder in course_folder.iterdir():
+            if student_folder.is_dir() and not student_folder.name.startswith('_'):
+                username = student_folder.name
+                
+                # Create unified student folder
+                unified_student_path = students_path / username
+                unified_student_path.mkdir(parents=True, exist_ok=True)
+                
+                # Copy files from old structure to new
+                import shutil
+                
+                # Copy all files and subdirectories
+                for item in student_folder.iterdir():
+                    dest = unified_student_path / item.name
+                    
+                    if item.is_file():
+                        if not dest.exists():
+                            shutil.copy2(item, dest)
+                            print(f"    📄 Copied {item.name}")
+                        else:
+                            print(f"    ⚠️  File {item.name} already exists in unified folder")
+                    elif item.is_dir():
+                        if not dest.exists():
+                            shutil.copytree(item, dest)
+                            print(f"    📁 Copied directory {item.name}")
+                        else:
+                            # Merge directory contents
+                            for subitem in item.iterdir():
+                                subdest = dest / subitem.name
+                                if not subdest.exists():
+                                    if subitem.is_file():
+                                        shutil.copy2(subitem, subdest)
+                                    else:
+                                        shutil.copytree(subitem, subdest)
+                
+                students_migrated += 1
+                print(f"    ✅ Migrated {username}")
+    
+    print(f"\n📊 Migration Summary:")
+    print(f"   👥 Students migrated: {students_migrated}")
+    print(f"   📂 New unified location: {students_path}")
+    print(f"   📝 Old course folders preserved for backup")
+    
+    return True
+
 def main():
     """Main function with command line argument support"""
     parser = argparse.ArgumentParser(description='Process CSV files for Regis University Data Science Practicum')
-    parser.add_argument('csv_file', help='Path to the CSV file to process')
+    parser.add_argument('csv_file', nargs='?', help='Path to the CSV file to process')
     parser.add_argument('--base-path', '-b', default='.', help='Base path for the repository (default: current directory)')
     parser.add_argument('--dry-run', '-d', action='store_true', help='Show what would be created without actually creating files')
+    parser.add_argument('--migrate', '-m', action='store_true', help='Migrate existing course-specific folders to unified structure')
+    parser.add_argument('--json-only', '-j', action='store_true', help='Generate JSON files for GitHub Actions instead of creating folders')
     
     args = parser.parse_args()
     
@@ -500,10 +830,25 @@ def main():
     print("🎓 Regis University Data Science Practicum - CSV Processor")
     print("=" * 60)
     print(f"📁 Base path: {base_path.absolute()}")
+    
+    if args.migrate:
+        print("🔄 Migration Mode - Converting to unified student structure")
+        print("=" * 60)
+        return 0 if migrate_existing_folders(base_path) else 1
+    
+    if not args.csv_file:
+        print("❌ CSV file path is required unless using --migrate option")
+        parser.print_help()
+        return 1
+    
     print(f"📄 CSV file: {args.csv_file}")
     
-    if args.dry_run:
+    if args.json_only:
+        print("📄 JSON-Only Mode - Generating JSON for GitHub Actions")
+    elif args.dry_run:
         print("🔍 DRY RUN MODE - No files will be created")
+    else:
+        print("📂 Folder Mode - Creating unified student profiles")
     
     print("=" * 60)
     
@@ -511,12 +856,17 @@ def main():
         print("🔍 This would process the CSV and show planned actions")
         return
     
-    success = process_csv_file(args.csv_file, base_path)
+    success = process_csv_file(args.csv_file, base_path, json_only=args.json_only)
     
     if success:
         print(f"\n🎉 Processing completed successfully!")
-        print(f"📂 Student folders created in: data/")
-        print(f"🔄 Run sync script next to generate HTML profiles")
+        if args.json_only:
+            print(f"� JSON files generated for GitHub Actions")
+            print(f"🚀 Ready for automated workflow processing")
+        else:
+            print(f"�📂 Unified student profiles created in: data/students/")
+            print(f"📚 Each student has ONE profile that grows with both practica")
+            print(f"🔄 Run sync script next to generate HTML profiles")
     else:
         print(f"\n❌ Processing failed!")
         return 1
