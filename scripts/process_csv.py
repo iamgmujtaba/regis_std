@@ -705,37 +705,37 @@ def process_csv_file(csv_path, base_path, json_only=False):
     }
     
     # Save processing summary only if not json_only mode
-    if not json_only:
+    # if not json_only:
         # Save processing summary (keep course-specific summaries for tracking)
-        summary_path = base_path / 'data' / course_info['folder_name'] / '_processing_summary.json'
-        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        # summary_path = base_path / 'data' / course_info['folder_name'] / '_processing_summary.json'
+        # summary_path.parent.mkdir(parents=True, exist_ok=True)
         
-        with open(summary_path, 'w', encoding='utf-8') as f:
-            json.dump(summary, f, indent=2, ensure_ascii=False)
+        # with open(summary_path, 'w', encoding='utf-8') as f:
+            # json.dump(summary, f, indent=2, ensure_ascii=False)
         
         # Also save a unified summary
-        unified_summary_path = base_path / 'data' / 'students' / '_processing_summary.json'
-        unified_summary = {
-            'last_processed': datetime.now().isoformat(),
-            'note': 'Students are stored in unified folders under data/students/',
-            'course_summaries': {
-                course_info['folder_name']: summary
-            }
-        }
+        # unified_summary_path = base_path / 'data' / 'students' / '_processing_summary.json'
+        # unified_summary = {
+        #     'last_processed': datetime.now().isoformat(),
+        #     'note': 'Students are stored in unified folders under data/students/',
+        #     'course_summaries': {
+        #         course_info['folder_name']: summary
+        #     }
+        # }
         
         # Load existing unified summary if it exists
-        if unified_summary_path.exists():
-            with open(unified_summary_path, 'r', encoding='utf-8') as f:
-                existing_unified = json.load(f)
-                if 'course_summaries' not in existing_unified:
-                    existing_unified['course_summaries'] = {}
-                existing_unified['course_summaries'][course_info['folder_name']] = summary
-                existing_unified['last_processed'] = datetime.now().isoformat()
-                unified_summary = existing_unified
+        # if unified_summary_path.exists():
+        #     with open(unified_summary_path, 'r', encoding='utf-8') as f:
+        #         existing_unified = json.load(f)
+        #         if 'course_summaries' not in existing_unified:
+        #             existing_unified['course_summaries'] = {}
+        #         existing_unified['course_summaries'][course_info['folder_name']] = summary
+        #         existing_unified['last_processed'] = datetime.now().isoformat()
+        #         unified_summary = existing_unified
         
-        unified_summary_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(unified_summary_path, 'w', encoding='utf-8') as f:
-            json.dump(unified_summary, f, indent=2, ensure_ascii=False)
+        # unified_summary_path.parent.mkdir(parents=True, exist_ok=True)
+        # with open(unified_summary_path, 'w', encoding='utf-8') as f:
+        #     json.dump(unified_summary, f, indent=2, ensure_ascii=False)
     
     # Print summary
     print(f"\n📊 Processing Summary:")
@@ -749,8 +749,8 @@ def process_csv_file(csv_path, base_path, json_only=False):
             print(f"   ❌ JSON generation failed - no student data found")
     else:
         print(f"   ✅ Profiles created/updated: {students_created}")
-        print(f"   📄 Course summary saved: {summary_path}")
-        print(f"   📄 Unified summary: {unified_summary_path}")
+        # print(f"   📄 Course summary saved: {summary_path}")
+        # print(f"   📄 Unified summary: {unified_summary_path}")
         print(f"   📂 Student profiles location: data/students/")
     print(f"   ❌ Errors: {len(errors)}")
     

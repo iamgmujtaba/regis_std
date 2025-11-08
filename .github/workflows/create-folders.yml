@@ -1,4 +1,4 @@
-name: Generate Student JSON from CSV
+name: Generate JSON and Student Profiles from CSV
 
 on:
   push:
@@ -50,14 +50,18 @@ jobs:
         git config --local user.name "GitHub Action - JSON Generator"
         git pull --rebase origin main || echo "⚠️ Pull failed, continuing..."
         
-    - name: Generate JSON from CSV
+    - name: Generate JSON and Profiles from CSV
       run: |
         if [ -n "${{ github.event.inputs.csv_file }}" ]; then
           # Manual dispatch - process specific file
           csv_path="data/${{ github.event.inputs.csv_file }}"
           echo "🔄 Processing specific file: $csv_path"
           if [ -f "$csv_path" ]; then
+            echo "📄 Step 1: Generating JSON for regis repository..."
             python scripts/process_csv.py --json-only "$csv_path"
+            
+            echo "📁 Step 2: Creating profile folders for student editing..."
+            python scripts/process_csv.py "$csv_path"
           else
             echo "❌ File not found: $csv_path"
             exit 1
@@ -65,10 +69,19 @@ jobs:
         else
           # Auto trigger - process all CSV files
           echo "🔄 Auto-processing all CSV files in data/"
+          echo "📄 Step 1: Generating JSON files..."
           python scripts/generate_json.py
+          
+          echo "📁 Step 2: Creating profile folders..."
+          for csv_file in data/*.csv; do
+            if [ -f "$csv_file" ]; then
+              echo "   Processing: $(basename $csv_file)"
+              python scripts/process_csv.py "$csv_file"
+            fi
+          done
         fi
         
-    - name: Verify JSON generation
+    - name: Verify JSON and Profile generation
       run: |
         echo "📋 Checking for generated JSON files..."
         if ls data/*.json >/dev/null 2>&1; then
@@ -90,20 +103,46 @@ jobs:
           done
         else
           echo "❌ No JSON files were generated in data/ folder!"
-          echo "📋 Current data/ directory contents:"
-          ls -la data/
           exit 1
         fi
         
-    - name: Commit and push JSON files
+        echo ""
+        echo "📋 Checking for generated profile folders..."
+        if [ -d "data/students" ]; then
+          student_folders=$(find data/students -maxdepth 1 -type d | grep -v "^data/students$" | wc -l)
+          echo "✅ Profile folders generated: $student_folders students"
+          
+          # List student folders
+          echo "👥 Student folders:"
+          find data/students -maxdepth 1 -type d | grep -v "^data/students$" | sort | while read folder; do
+            username=$(basename "$folder")
+            if [ -f "$folder/profile.md" ]; then
+              echo "   • $username (profile.md ✅)"
+            else
+              echo "   • $username (profile.md ❌)"
+            fi
+          done
+        else
+          echo "❌ No student profile folders found!"
+          exit 1
+        fi
+        
+    - name: Commit and push JSON files and profiles
       run: |
         git add data/*.json
+        git add data/students/
         if git diff --staged --quiet; then
-          echo "📝 No new JSON files to commit"
+          echo "📝 No new files to commit"
         else
-          # Count JSON files for commit message
+          # Count files for commit message
           json_count=$(ls data/*.json 2>/dev/null | wc -l)
-          git commit -m "🎓 Auto-generate JSON files: $json_count course(s) - $(date +'%Y-%m-%d %H:%M UTC')"
+          if [ -d "data/students" ]; then
+            student_count=$(find data/students -maxdepth 1 -type d | grep -v "^data/students$" | wc -l)
+          else
+            student_count=0
+          fi
+          
+          git commit -m "🎓 Auto-generate: $json_count JSON file(s) + $student_count student profile(s) - $(date +'%Y-%m-%d %H:%M UTC')"
           
           # Try to push, handle conflicts gracefully
           if ! git push; then
@@ -112,7 +151,7 @@ jobs:
             git push
           fi
           
-          echo "✅ Successfully pushed JSON files to repository"
+          echo "✅ Successfully pushed JSON files and student profiles to repository"
           
           # Show what was committed
           echo "📊 Committed files:"
