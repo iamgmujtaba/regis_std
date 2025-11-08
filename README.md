@@ -7,12 +7,12 @@ This repository automates the creation of professional student portfolios for th
 ### For Faculty 👩‍🏫
 Upload your CSV file → Student folders are created automatically → Professional portfolios generated
 
-**📖 [Complete Faculty Guide](../instructor-guide.html)**
+**📖 [Complete Faculty Guide](https://gmujtaba.com/regis/instructor-guide.html)**
 
 ### For Students 🎓
 Edit your profile → Add your photo and files → Portfolio published automatically
 
-**📖 [Complete Student Guide](../student-guide.html)**
+**📖 [Complete Student Guide](https://gmujtaba.com/regis/student-guide.html)**
 
 ## 📋 How It Works
 
@@ -49,21 +49,6 @@ Student Name,Email,Username,Project Title,GitHub,Presentation,Report,Profile Pag
 "Jane Smith","jsmith@regis.edu","jsmith002","ML Classification","","","",""
 ```
 
-## 📊 Features
-
-- ✅ **Automated Processing**: Zero manual setup
-- ✅ **Email Cleaning**: `@worldclass.regis.edu` → `@regis.edu`
-- ✅ **Professional Design**: University-branded portfolios
-- ✅ **Mobile Responsive**: Works on all devices
-- ✅ **Course Support**: MSDS 692 and MSDS 696
-- ✅ **Asset Management**: Images, reports, presentations
-
-## � Documentation
-
-- **[Faculty Guide](../instructor-guide.html)** - Complete management instructions
-- **[Student Guide](../student-guide.html)** - Step-by-step portfolio creation
-- **[Technical Documentation](../documentation.html)** - System architecture and API
-- **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Development overview
 
 ## 🤖 Automation
 
@@ -74,12 +59,6 @@ GitHub Actions automatically:
 - Syncs to main portfolio repository
 - Optimizes images for web
 
-## 🆘 Support
-
-- **Faculty**: See [Instructor Guide](../instructor-guide.html) for management tasks
-- **Students**: See [Student Guide](../student-guide.html) for portfolio creation
-- **Technical Issues**: Create an issue in this repository
-- **Contact**: datasciencehelp@regis.edu
 
 ---
 
