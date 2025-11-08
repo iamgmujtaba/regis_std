@@ -1005,12 +1005,18 @@ def sync_student_data():
     (target_dir / 'data').mkdir(exist_ok=True)
     (target_dir / 'profiles').mkdir(exist_ok=True)
     
-    # Find all course directories
+    # Find all course directories (only process directories that match course pattern)
     for course_dir in source_dir.glob('*/'):
         if not course_dir.is_dir():
             continue
             
         course_code = course_dir.name
+        
+        # Skip directories that don't match the course pattern (e.g., skip 'students' folder)
+        if not (course_code.startswith('2025_') and ('msds692' in course_code.lower() or 'msds696' in course_code.lower())):
+            print(f"⏭️  Skipping non-course directory: {course_code}")
+            continue
+            
         print(f"🔄 Processing course: {course_code}")
         
         course_students = []
@@ -1056,8 +1062,8 @@ def sync_student_data():
             else:
                 print(f"    ⚠️  No profile.md found for {username}")
         
-        # Create separate JSON file for this semester/course
-        semester_json_path = target_dir / 'data' / f'students_{course_code}.json'
+        # Create separate JSON file for this semester/course with the same naming as existing files
+        semester_json_path = target_dir / 'data' / f'{course_code}.json'
         
         semester_data = {
             'course': {
