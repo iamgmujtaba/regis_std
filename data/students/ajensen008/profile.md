@@ -64,6 +64,31 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 *Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
 
 
+## MSDS 692 - Practicum I
+
+**Title:** Predicting Scope 3 Greenhouse Gas (GHG) Emissions Using Hierarchical Linear Modeling
+
+**Semester:** Summer 2025
+
+**Tags:** Data Science, Python, Analytics
+
+**Abstract:** This project focuses on predicting scope 3 greenhouse gas (ghg) emissions using hierarchical linear modeling. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [https://github.com/ajensen008/AmberJensen_Practicum_I/tree/main/Notebooks](https://github.com/ajensen008/AmberJensen_Practicum_I/tree/main/Notebooks)
+- Project Report: [Download Report](reports/ajensen008_practicumi_report.pdf)
+- Presentation Slides: [View Slides](presentations/ajensen008_practicumi_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+
 ## Contact
 
 **Email:** ajensen008@regis.edu

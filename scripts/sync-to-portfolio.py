@@ -419,7 +419,7 @@ def auto_detect_project_files(student_files, course_info, username, project_sect
     return final_urls
 
 def create_html_page(student_data, course_info, target_dir, markdown_content, metadata, student_files):
-    """Create enhanced HTML page with proper Regis University branding"""
+    """Create enhanced HTML page in the student's own directory"""
     username = student_data['username']
     name = metadata.get('name', student_data.get('name', 'Student Name'))
     email = clean_email(metadata.get('email', student_data.get('email', 'student@regis.edu')))
@@ -427,9 +427,8 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     # Parse markdown sections
     sections = parse_markdown_sections(markdown_content)
     
-    # Create profiles directory
-    profiles_dir = target_dir / 'profiles'
-    profiles_dir.mkdir(exist_ok=True)
+    # Student's directory path (where HTML will be saved)
+    student_dir = target_dir / 'students' / username
     
     # Generate project HTML with proper course context
     project_section = sections['practicum1'] if course_info['is_practicum_1'] else sections['practicum2']
@@ -656,14 +655,14 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
 </body>
 </html>'''
     
-    # Write the HTML file
-    html_file = profiles_dir / f'{username}.html'
+    # Write the HTML file in the student's directory with username as filename
+    html_file = student_dir / f'{username}.html'
     with open(html_file, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print(f"    🌐 Created HTML page: profiles/{username}.html")
+    print(f"    🌐 Created HTML page: students/{username}/{username}.html")
     
-    return f'profiles/{username}.html'
+    return f'students/{username}/{username}.html'
     """Generate project HTML with proper PDF links"""
     if not project_data or not project_data.get('title'):
         # Default project template
@@ -984,122 +983,153 @@ def generate_contact_html(contact_data, email):
     </div>'''
 
 def sync_student_data():
-    """Sync student data to main portfolio repository"""
+    """Sync student data and create HTML profiles from unified student directory"""
     
-    # Paths
+    # Paths - work directly with the data directory
     source_dir = Path('data')
-    target_dir = Path('main-portfolio')
+    target_dir = Path('data')  # Create HTML in the same data directory
     
     if not source_dir.exists():
         print("❌ Source data directory not found")
         return
-        
-    if not target_dir.exists():
-        print("❌ Main portfolio directory not found")
+    
+    print(f"📁 Processing unified student data from: {source_dir}")
+    print(f"📁 Creating HTML profiles in: {target_dir}")
+    
+    # No need to create profiles directory - HTML files go in student directories
+    
+    # Process unified student directory structure
+    students_dir = source_dir / 'students'
+    if not students_dir.exists():
+        print(f"❌ Students directory not found: {students_dir}")
         return
     
-    print(f"📁 Processing data from: {source_dir}")
-    print(f"📁 Syncing to: {target_dir}")
+    print(f"🔄 Processing unified student directory: {students_dir}")
     
-    # Ensure target directories exist
-    (target_dir / 'data').mkdir(exist_ok=True)
-    (target_dir / 'profiles').mkdir(exist_ok=True)
+    # Create separate collections for each course
+    msds692_students = []
+    msds696_students = []
     
-    # Find all course directories (only process directories that match course pattern)
-    for course_dir in source_dir.glob('*/'):
-        if not course_dir.is_dir():
+    # Process each student in the unified directory
+    for student_dir in students_dir.glob('*/'):
+        if not student_dir.is_dir():
             continue
             
-        course_code = course_dir.name
+        username = student_dir.name
+        profile_path = student_dir / 'profile.md'
         
-        # Skip directories that don't match the course pattern (e.g., skip 'students' folder)
-        if not (course_code.startswith('2025_') and ('msds692' in course_code.lower() or 'msds696' in course_code.lower())):
-            print(f"⏭️  Skipping non-course directory: {course_code}")
-            continue
+        print(f"  👤 Processing student: {username}")
+        
+        if profile_path.exists():
+            metadata, content = parse_markdown_profile(profile_path)
             
-        print(f"🔄 Processing course: {course_code}")
-        
-        course_students = []
-        
-        # Process each student in the course
-        for student_dir in course_dir.glob('*/'):
-            if not student_dir.is_dir():
-                continue
-                
-            username = student_dir.name
-            profile_path = student_dir / 'profile.md'
+            # Parse the content to see which courses this student is in
+            parsed_sections = parse_markdown_sections(content)
             
-            print(f"  👤 Processing student: {username}")
+            # Find all student files (images, PDFs) in unified directory
+            student_files = find_student_files(student_dir, 'students', username)
             
-            if profile_path.exists():
-                metadata, content = parse_markdown_profile(profile_path)
-                
-                # Find all student files (images, PDFs)
-                student_files = find_student_files(student_dir, course_code, username)
-                
-                # Create student data entry
-                student_data = {
-                    'username': username,
-                    'name': f"{metadata.get('firstName', '')} {metadata.get('lastName', '')}".strip() or username,
-                    'email': metadata.get('email', ''),
-                    'course': course_code,
-                    'semester': metadata.get('semester', 'Spring 2025'),
-                    'profilePath': f'regis_std/data/{course_code}/{username}/profile.md',
-                    'avatarPath': student_files['avatar_url'],  # Direct URL
-                    'projects': [],
-                    'files': student_files['pdfs'] + student_files['images']
-                }
-                
-                # Create course info object for the function
-                course_info = parse_course_folder(course_code)
-                
-                # Create HTML page for this student with all file links
-                html_path = create_html_page(student_data, course_info, target_dir, content, metadata, student_files)
-                student_data['profilePage'] = html_path
-                
-                course_students.append(student_data)
-                print(f"    ✅ Processed {student_data['name']} ({username})")
-            else:
-                print(f"    ⚠️  No profile.md found for {username}")
-        
-        # Create separate JSON file for this semester/course with the same naming as existing files
-        semester_json_path = target_dir / 'data' / f'{course_code}.json'
-        
-        semester_data = {
-            'course': {
-                'code': course_code.upper(),
-                'name': f'Data Science Practicum - {course_code.upper()}',
-                'semester': 'Spring 2025',
-                'year': '2025',
-                'description': f'Student portfolios for {course_code.upper()} - Data Science Practicum course at Regis University.'
-            },
-            'university': {
-                'name': 'Regis University',
-                'phone': '(800) 388-2366',
-                'address': '3333 Regis Blvd, Denver, CO 80221',
-                'website': 'https://www.regis.edu'
-            },
-            'students': course_students,
-            'spotlight': [],
-            'statistics': {
-                'totalStudents': len(course_students),
-                'totalProjects': len(course_students) * 2,
-                'lastUpdated': datetime.now().isoformat()
-            },
-            'metadata': {
-                'dataSource': 'regis_std repository',
-                'syncedAt': datetime.now().isoformat(),
-                'version': '1.0'
+            # Create base student data entry
+            base_student_data = {
+                'username': username,
+                'name': f"{metadata.get('firstName', '')} {metadata.get('lastName', '')}".strip() or username,
+                'email': metadata.get('email', ''),
+                'semester': metadata.get('semester', 'Spring 2025'),
+                'profilePath': f'regis_std/data/students/{username}/profile.md',
+                'avatarPath': student_files['avatar_url'],  # Direct URL
+                'files': student_files['pdfs'] + student_files['images']
             }
-        }
-        
-        # Write semester-specific JSON file
-        with open(semester_json_path, 'w', encoding='utf-8') as f:
-            json.dump(semester_data, f, indent=2, ensure_ascii=False)
-        
-        print(f"📊 Created {course_code} data file with {len(course_students)} students")
-        print(f"📁 Saved: {semester_json_path}")
-
+            
+            # Check if student has MSDS692 content
+            if parsed_sections.get('practicum1'):
+                practicum1_data = base_student_data.copy()
+                practicum1_data.update({
+                    'course': '2025_summer_msds692',
+                    'projects': []
+                })
+                
+                # Create HTML page for MSDS692
+                course_info_692 = {
+                    'course': 'MSDS692', 
+                    'is_practicum_1': True, 
+                    'semester': 'Summer 2025'
+                }
+                html_path = create_html_page(practicum1_data, course_info_692, target_dir, content, metadata, student_files)
+                practicum1_data['profilePage'] = html_path
+                
+                msds692_students.append(practicum1_data)
+                print(f"    ✅ Added to MSDS692: {base_student_data['name']} ({username})")
+            
+            # Check if student has MSDS696 content  
+            if parsed_sections.get('practicum2'):
+                practicum2_data = base_student_data.copy()
+                practicum2_data.update({
+                    'course': '2025_summer_msds696',
+                    'projects': []
+                })
+                
+                # Create HTML page for MSDS696
+                course_info_696 = {
+                    'course': 'MSDS696', 
+                    'is_practicum_1': False, 
+                    'semester': 'Summer 2025'
+                }
+                html_path = create_html_page(practicum2_data, course_info_696, target_dir, content, metadata, student_files)
+                practicum2_data['profilePage'] = html_path
+                
+                msds696_students.append(practicum2_data)
+                print(f"    ✅ Added to MSDS696: {base_student_data['name']} ({username})")
+                
+        else:
+            print(f"    ⚠️  No profile.md found for {username}")
+    
+    # Create separate JSON files for each course
+    courses_data = [
+        ('2025_summer_msds692', msds692_students, 'MSDS692'),
+        ('2025_summer_msds696', msds696_students, 'MSDS696')
+    ]
+    
+    for course_code, course_students, course_display in courses_data:
+        if course_students:  # Only create JSON if there are students
+            semester_json_path = target_dir / f'{course_code}.json'
+            
+            semester_data = {
+                'course': {
+                    'code': course_code.upper(),
+                    'name': f'Data Science Practicum - {course_display}',
+                    'semester': 'Spring 2025',
+                    'year': '2025',
+                    'description': f'Student portfolios for {course_display} - Data Science Practicum course at Regis University.'
+                },
+                'university': {
+                    'name': 'Regis University',
+                    'phone': '(800) 388-2366',
+                    'address': '3333 Regis Blvd, Denver, CO 80221',
+                    'website': 'https://www.regis.edu'
+                },
+                'students': course_students,
+                'spotlight': [],
+                'statistics': {
+                    'totalStudents': len(course_students),
+                    'totalProjects': len(course_students),
+                    'lastUpdated': datetime.now().isoformat()
+                },
+                'metadata': {
+                    'dataSource': 'regis_std repository',
+                    'syncedAt': datetime.now().isoformat(),
+                    'version': '1.0'
+                }
+            }
+            
+            # Write semester-specific JSON file
+            with open(semester_json_path, 'w', encoding='utf-8') as f:
+                json.dump(semester_data, f, indent=2, ensure_ascii=False)
+            
+            print(f"📊 Created {course_display} data file with {len(course_students)} students")
+            print(f"📁 Saved: {semester_json_path}")
+        else:
+            print(f"⏭️  No students found for {course_display}, skipping JSON creation")
+    
     print(f"✅ Sync completed successfully!")
 
 def generate_enhanced_project_html(project_content, project_title, course_info, project_urls):

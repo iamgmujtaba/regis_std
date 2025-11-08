@@ -64,6 +64,31 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 *Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
 
 
+## MSDS 692 - Practicum I
+
+**Title:** Impact of Remote Work on Mental Health
+
+**Semester:** Summer 2025
+
+**Tags:** Data Science, Python, Analytics
+
+**Abstract:** This project focuses on impact of remote work on mental health. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [https://github.com/Areddyp/Final-Project](https://github.com/Areddyp/Final-Project)
+- Project Report: [Download Report](reports/apochampally_practicumi_report.pdf)
+- Presentation Slides: [View Slides](presentations/apochampally_practicumi_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+
 ## Contact
 
 **Email:** apochampally@regis.edu

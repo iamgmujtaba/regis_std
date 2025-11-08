@@ -8,6 +8,7 @@ import os
 import csv
 import re
 import json
+import shutil
 from pathlib import Path
 from datetime import datetime
 import argparse
@@ -438,6 +439,21 @@ def create_student_folder_structure(base_path, student_data, course_info):
     subdirs = ['reports', 'presentations', 'assets']
     for subdir in subdirs:
         (student_dir / subdir).mkdir(exist_ok=True)
+    
+    # Copy default avatar image to student directory if it doesn't exist
+    avatar_source = base_path / 'data' / 'avatar.jpg'
+    avatar_dest = student_dir / 'avatar.jpg'
+    
+    if avatar_source.exists() and not avatar_dest.exists():
+        try:
+            shutil.copy2(avatar_source, avatar_dest)
+            print(f"    🖼️  Copied default avatar to {username}/")
+        except Exception as e:
+            print(f"    ⚠️  Warning: Could not copy avatar for {username}: {e}")
+    elif avatar_dest.exists():
+        print(f"    ✅ Avatar already exists for {username}")
+    else:
+        print(f"    ⚠️  Warning: Default avatar not found at {avatar_source}")
     
     # Handle profile.md creation/update
     profile_path = student_dir / 'profile.md'
