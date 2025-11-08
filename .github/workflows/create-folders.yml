@@ -8,11 +8,6 @@ on:
         required: false
         type: string
         default: ''
-  push:
-    paths:
-      - '*.csv'
-      - 'data/*.csv'
-    branches: [ main ]
 
 permissions:
   contents: write
@@ -158,8 +153,7 @@ jobs:
           # Count the changes
           new_folders=$(git diff --staged --name-only | grep -E "data/.*/.*/profile\.md$" | wc -l)
           
-          commit_message="🎓 Create $new_folders student folders and templates"
-          commit_message="$commit_message
+          commit_message="🎓 Create $new_folders student folders and templates
 
 Automatically generated from CSV upload:
 - Created organized student folders
