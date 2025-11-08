@@ -593,6 +593,7 @@ Your profile will automatically sync to the main portfolio site when you:
 *Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}*
 '''
 
+
 def process_csv_file(csv_path, base_path, json_only=False):
     """
     Process CSV file and either:
