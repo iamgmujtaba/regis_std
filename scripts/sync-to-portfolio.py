@@ -1110,25 +1110,45 @@ def generate_enhanced_project_html(project_content, project_title, course_info, 
         </div>
         '''
     
-    # Extract project title from content if available
-    lines = project_content.strip().split('\n')
-    content_title = project_title
-    description_start = 0
-    
-    # Look for a title in the first few lines
-    for i, line in enumerate(lines[:3]):
-        if line.startswith('#'):
-            content_title = line.strip('#').strip() or project_title
-            description_start = i + 1
-            break
-        elif line.strip() and not line.startswith('-') and not line.startswith('*'):
-            content_title = line.strip() or project_title
-            description_start = i + 1
-            break
-    
-    # Get description
-    description_lines = lines[description_start:] if description_start < len(lines) else []
-    description = '\n'.join(description_lines).strip()
+    # Handle both dictionary (parsed) and string (raw) input
+    if isinstance(project_content, dict):
+        # Extract information from parsed project dictionary
+        project_data = project_content
+        content_title = project_data.get('title', project_title)
+        description = project_data.get('abstract', project_data.get('description', 'Project description coming soon.'))
+        technologies = project_data.get('technologies', [])
+        achievements = project_data.get('achievements', [])
+        links = project_data.get('links', {})
+        
+        # Convert technologies list to string if needed
+        if isinstance(technologies, list):
+            tech_text = ', '.join(technologies) if technologies else 'Technologies will be listed here'
+        else:
+            tech_text = str(technologies) if technologies else 'Technologies will be listed here'
+            
+    else:
+        # Handle raw string content (legacy support)
+        lines = project_content.strip().split('\n')
+        content_title = project_title
+        description_start = 0
+        
+        # Look for a title in the first few lines
+        for i, line in enumerate(lines[:3]):
+            if line.startswith('#'):
+                content_title = line.strip('#').strip() or project_title
+                description_start = i + 1
+                break
+            elif line.strip() and not line.startswith('-') and not line.startswith('*'):
+                content_title = line.strip() or project_title
+                description_start = i + 1
+                break
+        
+        # Get description
+        description_lines = lines[description_start:] if description_start < len(lines) else []
+        description = '\n'.join(description_lines).strip() if description_lines else 'Project description coming soon.'
+        tech_text = 'Technologies will be listed here'
+        achievements = []
+        links = {}
     
     # Convert markdown to HTML for description
     description_html = description
@@ -1142,12 +1162,20 @@ def generate_enhanced_project_html(project_content, project_title, course_info, 
     else:
         description_html = '<p class="text-gray-600">Project details will be added soon.</p>'
     
+    # Generate achievements HTML
+    achievements_html = ''
+    if achievements:
+        achievements_html = '<div class="mb-6"><h4 class="font-semibold mb-3">Key Achievements:</h4><ul class="list-disc list-inside space-y-1">'
+        for achievement in achievements[:5]:  # Limit to 5 achievements
+            achievements_html += f'<li class="text-gray-700">{achievement}</li>'
+        achievements_html += '</ul></div>'
+    
     # Generate project links
     links_html = ''
     if any(project_urls.values()):
         links_html = '<div class="flex flex-wrap gap-3 mt-6">'
         
-        if project_urls['github']:
+        if project_urls.get('github'):
             links_html += f'''
             <a href="{project_urls['github']}" target="_blank" 
                class="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition duration-300">
@@ -1155,7 +1183,7 @@ def generate_enhanced_project_html(project_content, project_title, course_info, 
             </a>
             '''
         
-        if project_urls['presentation']:
+        if project_urls.get('presentation'):
             links_html += f'''
             <a href="{project_urls['presentation']}" target="_blank"
                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300">
@@ -1163,11 +1191,11 @@ def generate_enhanced_project_html(project_content, project_title, course_info, 
             </a>
             '''
         
-        if project_urls['report']:
+        if project_urls.get('report'):
             links_html += f'''
             <a href="{project_urls['report']}" target="_blank"
                class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300">
-                <i class="fas fa-file-pdf mr-2"></i> Final Report
+                <i class="fas fa-file-pdf mr-2"></i> Project Report
             </a>
             '''
         
