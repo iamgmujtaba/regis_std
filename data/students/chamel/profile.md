@@ -10,7 +10,7 @@ graduation: "May 2026"
 major: "Data Science"
 degree: "Master of Science in Data Science"
 university: "Regis University"
-current_course: "MSDS 692"
+current_course: "MSDS 696"
 current_semester: "Summer 2025"
 ---
 
@@ -60,6 +60,31 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 - GitHub Repository: [https://github.com/Feebami/5DVFI](https://github.com/Feebami/5DVFI)
 - Project Report: [Download Report](reports/chamel_practicumi_report.pdf)
 - Presentation Slides: [View Slides](presentations/chamel_practicumi_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+
+## MSDS 696 - Practicum II
+
+**Title:** An Exploration of Multi-Task Soft Actor-Critic Reinforcement Learning for Vision-Based Object Manipulation with Simulated Table-Mounted Robot Arms in ManiSkill
+
+**Semester:** Summer 2025
+
+**Tags:** Data Science, Python, Analytics
+
+**Abstract:** This project focuses on an exploration of multi-task soft actor-critic reinforcement learning for vision-based object manipulation with simulated table-mounted robot arms in maniskill. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [https://github.com/Feebami/VisionRL-MultiTaskSAC](https://github.com/Feebami/VisionRL-MultiTaskSAC)
+- Project Report: [Download Report](reports/chamel_practicumii_report.pdf)
+- Presentation Slides: [View Slides](presentations/chamel_practicumii_slides.pdf)
 
 *Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
 

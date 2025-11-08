@@ -10,7 +10,7 @@ graduation: "May 2026"
 major: "Data Science"
 degree: "Master of Science in Data Science"
 university: "Regis University"
-current_course: "MSDS 692"
+current_course: "MSDS 696"
 current_semester: "Summer 2025"
 ---
 
@@ -60,6 +60,31 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 - GitHub Repository: [https://your-portfolio-site.com/profiles/gdonovan003#](https://your-portfolio-site.com/profiles/gdonovan003#)
 - Project Report: [Download Report](reports/gdonovan003_practicumi_report.pdf)
 - Presentation Slides: [View Slides](presentations/gdonovan003_practicumi_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+
+## MSDS 696 - Practicum II
+
+**Title:** Building Analysis-Ready Data with a Multi-Stage Pipeline
+
+**Semester:** Summer 2025
+
+**Tags:** Data Analysis
+
+**Abstract:** This project focuses on building analysis-ready data with a multi-stage pipeline. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [https://your-portfolio-site.com/profiles/gdonovan003#](https://your-portfolio-site.com/profiles/gdonovan003#)
+- Project Report: [Download Report](reports/gdonovan003_practicumii_report.pdf)
+- Presentation Slides: [View Slides](presentations/gdonovan003_practicumii_slides.pdf)
 
 *Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
 

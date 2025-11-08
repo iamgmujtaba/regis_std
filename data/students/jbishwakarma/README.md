@@ -1,17 +1,17 @@
-# Matthew Scardino - Data Science Portfolio
+# Jonish Bishwakarma - Data Science Portfolio
 
 ## 📁 Unified Portfolio Structure
 
 ```
-scard659/
+jbishwakarma/
 ├── profile.md          # Your unified profile (contains all practica)
 ├── avatar.jpg          # Your profile photo
 ├── reports/
-│   ├── scard659_practicum1_report.pdf  # MSDS 692 report
-│   └── scard659_practicum2_report.pdf  # MSDS 696 report
+│   ├── jbishwakarma_practicum1_report.pdf  # MSDS 692 report
+│   └── jbishwakarma_practicum2_report.pdf  # MSDS 696 report
 ├── presentations/
-│   ├── scard659_practicum1_slides.pdf  # MSDS 692 slides
-│   └── scard659_practicum2_slides.pdf  # MSDS 696 slides
+│   ├── jbishwakarma_practicum1_slides.pdf  # MSDS 692 slides
+│   └── jbishwakarma_practicum2_slides.pdf  # MSDS 696 slides
 └── assets/
     └── (additional files)
 ```
@@ -32,22 +32,22 @@ scard659/
 - **Format:** JPG, PNG, or WebP
 
 ### Practicum I Report (MSDS 692)
-- **File name:** `scard659_practicum1_report.pdf`
+- **File name:** `jbishwakarma_practicum1_report.pdf`
 - **Location:** `reports/` folder
 - **Format:** PDF only
 
 ### Practicum I Slides (MSDS 692)
-- **File name:** `scard659_practicum1_slides.pdf`  
+- **File name:** `jbishwakarma_practicum1_slides.pdf`  
 - **Location:** `presentations/` folder
 - **Format:** PDF only
 
 ### Practicum II Report (MSDS 696)
-- **File name:** `scard659_practicum2_report.pdf`
+- **File name:** `jbishwakarma_practicum2_report.pdf`
 - **Location:** `reports/` folder
 - **Format:** PDF only
 
 ### Practicum II Slides (MSDS 696)
-- **File name:** `scard659_practicum2_slides.pdf`  
+- **File name:** `jbishwakarma_practicum2_slides.pdf`  
 - **Location:** `presentations/` folder
 - **Format:** PDF only
 

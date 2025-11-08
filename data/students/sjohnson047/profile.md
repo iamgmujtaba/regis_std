@@ -10,7 +10,7 @@ graduation: "May 2026"
 major: "Data Science"
 degree: "Master of Science in Data Science"
 university: "Regis University"
-current_course: "MSDS 692"
+current_course: "MSDS 696"
 current_semester: "Summer 2025"
 ---
 
@@ -60,6 +60,31 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 - GitHub Repository: [https://github.com/SReedJohnson/solar-farm-semantic-segmentation](https://github.com/SReedJohnson/solar-farm-semantic-segmentation)
 - Project Report: [Download Report](reports/sjohnson047_practicumi_report.pdf)
 - Presentation Slides: [View Slides](presentations/sjohnson047_practicumi_slides.pdf)
+
+*Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
+
+
+## MSDS 696 - Practicum II
+
+**Title:** Semantic Segmentation of Solar Farms from aerial imagery Using U-NET
+
+**Semester:** Summer 2025
+
+**Tags:** Data Science, Python, Analytics
+
+**Abstract:** This project focuses on semantic segmentation of solar farms from aerial imagery using u-net. Please update this section with a detailed description of your project, methodology, and key findings.
+
+**Key Achievements:**
+- Please add your key project achievements
+- Include quantifiable results where possible
+- Highlight technical innovations or challenges overcome
+
+**Technologies Used:** Please list the main technologies and tools used in your project
+
+**Links:**
+- GitHub Repository: [https://github.com/SReedJohnson/solar-farm-semantic-segmentation](https://github.com/SReedJohnson/solar-farm-semantic-segmentation)
+- Project Report: [Download Report](reports/sjohnson047_practicumii_report.pdf)
+- Presentation Slides: [View Slides](presentations/sjohnson047_practicumii_slides.pdf)
 
 *Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
 

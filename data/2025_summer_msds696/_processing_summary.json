@@ -1,0 +1,15 @@
+{
+  "course_info": {
+    "year": "2025",
+    "semester": "summer",
+    "course": "msds696",
+    "folder_name": "2025_summer_msds696",
+    "display_name": "MSDS696 - Summer 2025"
+  },
+  "processed_at": "2025-11-08T21:05:02.198225",
+  "students_processed": 8,
+  "students_created": 8,
+  "errors": [],
+  "csv_file": "data/2025_Summer_MSDS696.csv",
+  "json_generated": false
+}
