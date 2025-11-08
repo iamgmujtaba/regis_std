@@ -1,4 +1,4 @@
-name: Create Student Folders from CSV
+name: Create Student Folders
 
 on:
   workflow_dispatch:
