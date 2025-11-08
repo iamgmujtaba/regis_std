@@ -1,11 +1,11 @@
 ---
-name: "Matthew Scardino"
-firstName: "Matthew"
-lastName: "Scardino"
-email: "scard659@regis.edu"
-username: "scard659"
-github: "scard659"
-linkedin: "scard659"
+name: "Jonish Bishwakarma"
+firstName: "Jonish"
+lastName: "Bishwakarma"
+email: "jbishwakarma@regis.edu"
+username: "jbishwakarma"
+github: "jbishwakarma"
+linkedin: "jbishwakarma"
 graduation: "May 2026"
 major: "Data Science"
 degree: "Master of Science in Data Science"
@@ -41,13 +41,13 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 
 ## MSDS 696 - Practicum II
 
-**Title:** Wildlife Image Processing & Semantic Search System V2
+**Title:** RAG Medical Chatbot
 
 **Semester:** Summer 2025
 
-**Tags:** Image Processing
+**Tags:** Data Science, Python, Analytics
 
-**Abstract:** This project focuses on wildlife image processing & semantic search system v2. Please update this section with a detailed description of your project, methodology, and key findings.
+**Abstract:** This project focuses on rag medical chatbot. Please update this section with a detailed description of your project, methodology, and key findings.
 
 **Key Achievements:**
 - Please add your key project achievements
@@ -57,20 +57,20 @@ I am a dedicated Data Science graduate student at Regis University. My focus is 
 **Technologies Used:** Please list the main technologies and tools used in your project
 
 **Links:**
-- GitHub Repository: [https://github.com/readcommitted/wildlife2_client.git](https://github.com/readcommitted/wildlife2_client.git)
-- Project Report: [Download Report](reports/scard659_practicumii_report.pdf)
-- Presentation Slides: [View Slides](presentations/scard659_practicumii_slides.pdf)
+- GitHub Repository: [https://github.com/jonishk/Medibot](https://github.com/jonishk/Medibot)
+- Project Report: [Download Report](reports/jbishwakarma_practicumii_report.pdf)
+- Presentation Slides: [View Slides](presentations/jbishwakarma_practicumii_slides.pdf)
 
 *Please update the links above with your actual project URLs and ensure your PDF files are uploaded to the correct folders.*
 
 
 ## Contact
 
-**Email:** scard659@regis.edu
+**Email:** jbishwakarma@regis.edu
 
-**LinkedIn:** [Connect with me](https://linkedin.com/in/scard659)
+**LinkedIn:** [Connect with me](https://linkedin.com/in/jbishwakarma)
 
-**GitHub:** [View my repositories](https://github.com/scard659)
+**GitHub:** [View my repositories](https://github.com/jbishwakarma)
 
 **Portfolio:** [Visit my portfolio](https://your-portfolio-site.com)
 

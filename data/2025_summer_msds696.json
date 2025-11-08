@@ -1,0 +1,104 @@
+{
+  "course": {
+    "code": "MSDS696",
+    "name": "Data Science Practicum II",
+    "semester": "Summer",
+    "year": "2025",
+    "term": "25SU8W2",
+    "description": "Advanced practicum experience focusing on real-world data science applications and industry partnerships."
+  },
+  "students": [
+    {
+      "username": "scard659",
+      "name": "Matthew Scardino",
+      "email": "scard659@regis.edu",
+      "projectTitle": "Wildlife Image Processing & Semantic Search System V2",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/scard659/avatar.webp",
+      "github": "https://github.com/readcommitted/wildlife2_client.git",
+      "slides": "https://github.com/readcommitted/wildlife2_client/blob/main/docs/Wildlife%20V2%20pdf.pdf",
+      "report": "#",
+      "profilePage": "profiles/scard659.html",
+      "blog": "https://readcommitted.com/2025/08/wildlife-vision-v2-multi-model-species-identification-with-mcp-langgraph/",
+      "demo": "https://demo.wildlife.readcommitted.com",
+      "other": "https://api.wildlife.readcommitted.com"
+    },
+    {
+      "username": "ajensen008",
+      "name": "Amber Jensen",
+      "email": "ajensen008@regis.edu",
+      "projectTitle": "Principal Component Analysis and Clustering for Scope 3 Greenhouse Gas (GHG) Emissions Estimation with Hierarchical Linear Modeling",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/ajensen008/avatar.webp",
+      "github": "https://github.com/ajensen008/AmberJensen_Practicum_II/tree/main",
+      "slides": "https://github.com/ajensen008/AmberJensen_Practicum_II/blob/main/Amber%20Jensen%20Practicum%20II%20Presentation.pdf",
+      "report": "#",
+      "profilePage": "profiles/ajensen008.html"
+    },
+    {
+      "username": "sjohnson047",
+      "name": "Reed Johnson",
+      "email": "sjohnson047@regis.edu",
+      "projectTitle": "Semantic Segmentation of Solar Farms from aerial imagery Using U-NET",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/sjohnson047/avatar.webp",
+      "github": "https://github.com/SReedJohnson/solar-farm-semantic-segmentation",
+      "slides": "https://github.com/SReedJohnson/solar-farm-semantic-segmentation",
+      "report": "#",
+      "profilePage": "profiles/sjohnson047.html"
+    },
+    {
+      "username": "edisasa",
+      "name": "Etana Disasa",
+      "email": "edisasa@regis.edu",
+      "projectTitle": "Multimodal Sentiment Analysis for Instagram Posts",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/edisasa/avatar.webp",
+      "github": "https://github.com/etanadisasa/Multimodal-Sentiment-Analysis-of-Instagram-Posts/tree/main/Code",
+      "slides": "https://github.com/etanadisasa/Multimodal-Sentiment-Analysis-of-Instagram-Posts/blob/main/Presentation/Presentation.pdf",
+      "report": "https://github.com/etanadisasa/Multimodal-Sentiment-Analysis-of-Instagram-Posts/blob/main/Report/Report.pdf",
+      "profilePage": "profiles/edisasa.html"
+    },
+    {
+      "username": "gdonovan003",
+      "name": "Grace Donovan",
+      "email": "gdonovan003@regis.edu",
+      "projectTitle": "Building Analysis-Ready Data with a Multi-Stage Pipeline",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/gdonovan003/avatar.webp",
+      "github": "#",
+      "slides": "https://github.com/grdo9107/msds696/blob/main/msds_696_donovan.pdf",
+      "report": "#",
+      "profilePage": "profiles/gdonovan003.html"
+    },
+    {
+      "username": "chamel",
+      "name": "Chandon Hamel",
+      "email": "chamel@regis.edu",
+      "projectTitle": "An Exploration of Multi-Task Soft Actor-Critic Reinforcement Learning for Vision-Based Object Manipulation with Simulated Table-Mounted Robot Arms in ManiSkill",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/chamel/avatar.webp",
+      "github": "https://github.com/Feebami/VisionRL-MultiTaskSAC",
+      "slides": "https://docs.google.com/presentation/d/1xHAgpJR8MNN_MVFx-AA3ww2x0_uOgDh-bHmS2uyCom8/edit?usp=sharing",
+      "report": "https://drive.google.com/file/d/1yzFC51siN07B1sadW90O7HJqLh2zztyt/view?usp=sharing",
+      "profilePage": "profiles/chamel.html"
+    },
+    {
+      "username": "apochampally",
+      "name": "Abhilash Reddy Pochampally",
+      "email": "apochampally@regis.edu",
+      "projectTitle": "GenAI-Guided Article Summarization with Privacy Preservation",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/apochampally/avatar.webp",
+      "github": "https://github.com/Areddyp/Practium_2_final",
+      "slides": "https://docs.google.com/presentation/d/1RAaeFoPmBoSSL7f27RXqT8_HT4AK1v8P/edit?usp=drive_link&ouid=108440141498588652258&rtpof=true&sd=true",
+      "report": "https://drive.google.com/file/d/1yo_USmlS0fsPNfmS5YT9YkNNrLABrldT/view?usp=drive_link",
+      "profilePage": "profiles/apochampally.html"
+    },
+    {
+      "username": "jbishwakarma",
+      "name": "Jonish Bishwakarma",
+      "email": "jbishwakarma@regis.edu",
+      "projectTitle": "RAG Medical Chatbot",
+      "avatarPath": "https://raw.githubusercontent.com/iamgmujtaba/regis_std/main/data/students/jbishwakarma/avatar.webp",
+      "github": "https://github.com/jonishk/Medibot",
+      "slides": "https://github.com/jonishk/Medibot/blob/main/Medical_Chatbot_Presentation.pptx",
+      "report": "#",
+      "profilePage": "profiles/jbishwakarma.html",
+      "demo": "https://youtu.be/UP74PRR_-OM"
+    }
+  ]
+}
