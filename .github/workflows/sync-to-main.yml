@@ -188,6 +188,28 @@ jobs:
         echo "🔄 Starting student data sync..."
         python scripts/sync-to-portfolio.py
         
+    - name: Copy JSON files to regis repository
+      run: |
+        echo "📄 Copying JSON data files to regis repository..."
+        
+        # Ensure regis/data directory exists
+        mkdir -p regis/data
+        
+        # Copy JSON files if they exist
+        if [ -f "data/2025_summer_msds692.json" ]; then
+          cp data/2025_summer_msds692.json regis/data/
+          echo "✅ Copied MSDS692 JSON file"
+        else
+          echo "⚠️ MSDS692 JSON file not found"
+        fi
+        
+        if [ -f "data/2025_summer_msds696.json" ]; then
+          cp data/2025_summer_msds696.json regis/data/
+          echo "✅ Copied MSDS696 JSON file"
+        else
+          echo "⚠️ MSDS696 JSON file not found"
+        fi
+        
     - name: Verify generated files
       run: |
         echo "📋 Verifying generated files..."
