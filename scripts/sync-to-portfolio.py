@@ -1214,7 +1214,7 @@ def sync_student_data():
         else:
             print(f"    ⚠️  No profile.md found for {username}")
     
-    # Create separate JSON files for each course
+    # Create separate JSON files for each course (preserve CSV data, enhance with portfolio paths)
     courses_data = [
         ('2025_summer_msds692', msds692_students, 'MSDS692'),
         ('2025_summer_msds696', msds696_students, 'MSDS696')
@@ -1228,46 +1228,57 @@ def sync_student_data():
             # Also create in target directory if different
             target_json_path = target_dir / f'{course_code}.json'
             
-            semester_data = {
-                'course': {
-                    'code': course_code.upper(),
-                    'name': f'Data Science Practicum - {course_display}',
-                    'semester': 'Spring 2025',
-                    'year': '2025',
-                    'description': f'Student portfolios for {course_display} - Data Science Practicum course at Regis University.'
-                },
-                'university': {
-                    'name': 'Regis University',
-                    'phone': '(800) 388-2366',
-                    'address': '3333 Regis Blvd, Denver, CO 80221',
-                    'website': 'https://www.regis.edu'
-                },
-                'students': course_students,
-                'spotlight': [],
-                'statistics': {
-                    'totalStudents': len(course_students),
-                    'totalProjects': len(course_students),
-                    'lastUpdated': datetime.now().isoformat()
-                },
-                'metadata': {
-                    'dataSource': 'regis_std repository',
-                    'syncedAt': datetime.now().isoformat(),
-                    'version': '1.0'
+            # Try to load existing JSON from CSV processing to preserve project data
+            existing_data = None
+            if local_json_path.exists():
+                try:
+                    with open(local_json_path, 'r', encoding='utf-8') as f:
+                        existing_data = json.load(f)
+                    print(f"📄 Found existing CSV-generated JSON for {course_display}")
+                except Exception as e:
+                    print(f"⚠️  Could not read existing JSON: {e}")
+            
+            if existing_data and 'students' in existing_data:
+                # Use existing JSON data without modifying it
+                print(f"📄 Using existing JSON for {course_display} (read-only)")
+                # Create a copy for our use without modifying the original
+                semester_data = existing_data.copy()
+                
+                # Don't modify the original JSON file - just use it for HTML generation
+            else:
+                # Create new JSON structure if no existing data
+                print(f"📄 Creating new JSON for {course_display}")
+                semester_data = {
+                    'course': {
+                        'code': course_code.upper(),
+                        'name': f'Data Science Practicum - {course_display}',
+                        'semester': 'Spring 2025',
+                        'year': '2025',
+                        'description': f'Student portfolios for {course_display} - Data Science Practicum course at Regis University.'
+                    },
+                    'university': {
+                        'name': 'Regis University',
+                        'phone': '(800) 388-2366',
+                        'address': '3333 Regis Blvd, Denver, CO 80221',
+                        'website': 'https://www.regis.edu'
+                    },
+                    'students': course_students,
+                    'spotlight': [],
+                    'statistics': {
+                        'totalStudents': len(course_students),
+                        'totalProjects': len(course_students),
+                        'lastUpdated': datetime.now().isoformat()
+                    },
+                    'metadata': {
+                        'dataSource': 'regis_std repository',
+                        'syncedAt': datetime.now().isoformat(),
+                        'version': '1.0'
+                    }
                 }
-            }
             
-            # Write JSON files
-            with open(local_json_path, 'w', encoding='utf-8') as f:
-                json.dump(semester_data, f, indent=2, ensure_ascii=False)
-            
-            # Copy to target directory if different
-            if target_json_path != local_json_path:
-                with open(target_json_path, 'w', encoding='utf-8') as f:
-                    json.dump(semester_data, f, indent=2, ensure_ascii=False)
-                print(f"📁 Synced: {target_json_path}")
-            
-            print(f"📊 Created {course_display} data file with {len(course_students)} students")
-            print(f"📁 Saved: {local_json_path}")
+            # Don't write back to JSON files - sync script should only generate HTML
+            print(f"📊 Using {course_display} data file with {len(semester_data['students'])} students for HTML generation")
+            print(f"� Reading from: {local_json_path} (read-only)")
         else:
             print(f"⏭️  No students found for {course_display}, skipping JSON creation")
     
