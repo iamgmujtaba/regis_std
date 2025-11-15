@@ -583,6 +583,11 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="../assets/img/favicon.png">
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Georgia:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -597,9 +602,18 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
             theme: {{
                 extend: {{
                     colors: {{
-                        primary: '#1e40af',
-                        secondary: '#7c3aed',
-                        accent: '#06b6d4',
+                        'regis-blue': '#002B49',
+                        'regis-gold': '#F1C400',
+                        'regis-light-blue': '#CCE2EE',
+                        'regis-gold-accent': '#EDAB00',
+                        'regis-gray': '#D6D2C4',
+                        primary: '#002B49',
+                        secondary: '#F1C400',
+                        accent: '#CCE2EE',
+                    }},
+                    fontFamily: {{
+                        'sans': ['Open Sans', 'system-ui', 'sans-serif'],
+                        'serif': ['Georgia', 'serif'],
                     }}
                 }}
             }}
@@ -612,19 +626,19 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <i class="fas fa-user-graduate text-primary text-2xl mr-3"></i>
-                    <span class="font-bold text-xl text-gray-800">Regis University Portfolio</span>
+                    <img src="../assets/img/anderson_regis_logo.jpeg" alt="Regis University" class="h-8 w-auto mr-3">
+                    <span class="font-bold text-lg text-regis-blue">Portfolio</span>
                 </div>
                 <div class="hidden md:flex space-x-6">
-                    <a href="../index.html" class="text-gray-700 hover:text-primary transition duration-300">
+                    <a href="../index.html" class="text-gray-700 hover:text-regis-blue transition duration-300">
                         <i class="fas fa-home mr-1"></i> Home
                     </a>
-                    <a href="#about" class="text-gray-700 hover:text-primary transition duration-300">About</a>
-                    <a href="#projects" class="text-gray-700 hover:text-primary transition duration-300">Projects</a>
-                    <a href="#contact" class="text-gray-700 hover:text-primary transition duration-300">Contact</a>
+                    <a href="#about" class="text-gray-700 hover:text-regis-blue transition duration-300">About</a>
+                    <a href="#projects" class="text-gray-700 hover:text-regis-blue transition duration-300">Projects</a>
+                    <a href="#contact" class="text-gray-700 hover:text-regis-blue transition duration-300">Contact</a>
                 </div>
                 <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-gray-700 hover:text-primary">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-regis-blue">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
@@ -644,7 +658,7 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     </nav>
 
     <!-- Hero/Profile Section -->
-    <section class="bg-gradient-to-r from-primary to-secondary py-16">
+    <section class="bg-gradient-to-r from-regis-blue to-regis-gold py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row items-center justify-center gap-8">
                 <!-- Profile Photo -->
@@ -660,28 +674,27 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
                 <!-- Profile Info -->
                 <div class="text-center md:text-left text-white">
                     <h1 class="text-4xl md:text-5xl font-bold mb-2">{name}</h1>
-                    <p class="text-xl text-blue-100 mb-2">Data Science Graduate Student</p>
-                    <p class="text-lg text-blue-200 mb-4">Regis University | {course_info['course']}</p>
+                    <p class="text-xl text-regis-light-blue mb-2">Data Science Graduate Student</p>
+                    <p class="text-lg text-white/80 mb-4">Regis University | {course_info['course']}</p>
                     
                     <!-- Social Links -->
                     <div class="flex justify-center md:justify-start space-x-4 mb-4">
                         <a href="{sections['contact'].get('github', '#')}" 
                            target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300">
                             <i class="fab fa-github text-xl"></i>
                         </a>
                         <a href="{sections['contact'].get('linkedin', '#')}" 
                            target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300">
                             <i class="fab fa-linkedin text-xl"></i>
                         </a>
                         <a href="mailto:{email}" 
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300">
                             <i class="fas fa-envelope text-xl"></i>
                         </a>
                         <a href="{cv_url}" 
-                           target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300 {'opacity-50 cursor-not-allowed' if cv_url == '#' else ''}">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300 {'opacity-50 cursor-not-allowed' if cv_url == '#' else ''}">
                             <i class="fas fa-file-pdf text-xl"></i>
                         </a>
                     </div>
@@ -689,12 +702,11 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
                     <!-- Quick Links -->
                     <div class="flex flex-wrap justify-center md:justify-start gap-3">
                         <a href="{cv_url}" 
-                           target="_blank"
-                           class="{'bg-white text-primary' if cv_url != '#' else 'bg-gray-300 text-gray-600 cursor-not-allowed'} px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition duration-300 inline-flex items-center">
+                           class="{'bg-white text-regis-blue' if cv_url != '#' else 'bg-gray-300 text-gray-600 cursor-not-allowed'} px-4 py-2 rounded-lg font-semibold hover:bg-regis-light-blue transition duration-300 inline-flex items-center">
                             <i class="fas fa-download mr-2"></i> Download CV
                         </a>
                         <a href="#contact" 
-                           class="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-primary transition duration-300 inline-flex items-center">
+                           class="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-regis-blue transition duration-300 inline-flex items-center">
                             <i class="fas fa-paper-plane mr-2"></i> Contact Me
                         </a>
                     </div>
@@ -707,7 +719,7 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     <section id="about" class="py-16 bg-white">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">About Me</h2>
-            <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+            <div class="w-20 h-1 bg-regis-blue mx-auto mb-8"></div>
             
             <div class="prose prose-lg max-w-none text-gray-700">
                 {about_html}
@@ -725,7 +737,7 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     <section id="projects" class="py-16 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Data Science Practicum Projects</h2>
-            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
+            <div class="w-20 h-1 bg-regis-blue mx-auto mb-12"></div>
 
             {project_html}
         </div>
@@ -735,7 +747,7 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     <section id="contact" class="py-16 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">Get In Touch</h2>
-            <div class="w-20 h-1 bg-primary mx-auto mb-12"></div>
+            <div class="w-20 h-1 bg-regis-blue mx-auto mb-12"></div>
             {contact_html}
         </div>
     </section>
@@ -797,7 +809,7 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
         # Default project template
         return f'''
         <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
-            <div class="bg-gradient-to-r from-{gradient_color} to-blue-600 px-6 py-4">
+            <div class="bg-gradient-to-r from-regis-blue to-regis-gold px-6 py-4">
                 <h3 class="text-2xl font-bold text-white flex items-center">
                     <i class="fas fa-project-diagram mr-3"></i>
                     {title} Project
@@ -809,7 +821,7 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
                 </h4>
                 
                 <div class="mb-4">
-                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">
+                    <span class="inline-block bg-regis-light-blue text-regis-blue text-xs font-semibold px-3 py-1 rounded-full mr-2">
                         <i class="fas fa-tag mr-1"></i> Add Tags
                     </span>
                 </div>
@@ -889,13 +901,13 @@ def create_html_page(student_data, course_info, target_dir, markdown_content, me
     
     # Generate button classes based on availability
     github_class = "bg-gray-900 text-white hover:bg-gray-800" if project_data.get('github', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
-    report_class = "bg-primary text-white hover:bg-blue-800" if report_url != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
-    slides_class = "bg-secondary text-white hover:bg-purple-800" if slides_url != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
-    demo_class = "bg-accent text-white hover:bg-cyan-700" if project_data.get('demo', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
+    report_class = "bg-regis-blue text-white hover:bg-regis-blue/80" if report_url != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
+    slides_class = "bg-regis-gold text-white hover:bg-regis-gold-accent" if slides_url != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
+    demo_class = "bg-regis-light-blue text-regis-blue hover:bg-regis-light-blue/80" if project_data.get('demo', '#') != '#' else "bg-gray-300 text-gray-600 cursor-not-allowed"
     
     return f'''
     <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
-        <div class="bg-gradient-to-r from-{gradient_color} to-blue-600 px-6 py-4">
+        <div class="bg-gradient-to-r from-regis-blue to-regis-gold px-6 py-4">
             <h3 class="text-2xl font-bold text-white flex items-center">
                 <i class="fas fa-project-diagram mr-3"></i>
                 {title} Project
@@ -957,8 +969,8 @@ def generate_skills_html(skills_dict):
     """Generate skills HTML from parsed skills"""
     if not skills_dict:
         return '''<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-center border border-blue-200">
-                <i class="fas fa-code text-primary text-3xl mb-2"></i>
+            <div class="bg-gradient-to-br from-regis-light-blue/30 to-regis-light-blue/50 p-4 rounded-lg text-center border border-regis-light-blue">
+                <i class="fas fa-code text-regis-blue text-3xl mb-2"></i>
                 <p class="font-semibold">Programming</p>
                 <p class="text-sm text-gray-600">Python, R, SQL</p>
             </div>
@@ -967,8 +979,8 @@ def generate_skills_html(skills_dict):
                 <p class="font-semibold">Data Analysis</p>
                 <p class="text-sm text-gray-600">Pandas, NumPy</p>
             </div>
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-center border border-purple-200">
-                <i class="fas fa-chart-bar text-purple-600 text-3xl mb-2"></i>
+            <div class="bg-gradient-to-br from-regis-gold/20 to-regis-gold/40 p-4 rounded-lg text-center border border-regis-gold">
+                <i class="fas fa-chart-bar text-regis-blue text-3xl mb-2"></i>
                 <p class="font-semibold">Visualization</p>
                 <p class="text-sm text-gray-600">Matplotlib, Seaborn</p>
             </div>
@@ -1015,13 +1027,13 @@ def generate_contact_html(contact_data, email):
             <div class="space-y-4">
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-regis-blue rounded-lg flex items-center justify-center">
                             <i class="fas fa-envelope text-white"></i>
                         </div>
                     </div>
                     <div class="ml-4">
                         <p class="font-semibold">Email</p>
-                        <a href="mailto:{email}" class="text-primary hover:underline">
+                        <a href="mailto:{email}" class="text-regis-blue hover:underline">
                             {email}
                         </a>
                     </div>
@@ -1029,7 +1041,7 @@ def generate_contact_html(contact_data, email):
 
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-regis-gold rounded-lg flex items-center justify-center">
                             <i class="fab fa-linkedin text-white"></i>
                         </div>
                     </div>
@@ -1037,7 +1049,7 @@ def generate_contact_html(contact_data, email):
                         <p class="font-semibold">LinkedIn</p>
                         <a href="{contact_data.get('linkedin', '#')}" 
                            target="_blank"
-                           class="text-primary hover:underline">
+                           class="text-regis-blue hover:underline">
                             {"LinkedIn Profile" if contact_data.get('linkedin', '#') != '#' else "Add LinkedIn in profile.md"}
                         </a>
                     </div>
@@ -1053,7 +1065,7 @@ def generate_contact_html(contact_data, email):
                         <p class="font-semibold">GitHub</p>
                         <a href="{contact_data.get('github', '#')}" 
                            target="_blank"
-                           class="text-primary hover:underline">
+                           class="text-regis-blue hover:underline">
                             {"GitHub Profile" if contact_data.get('github', '#') != '#' else "Add GitHub in profile.md"}
                         </a>
                     </div>
@@ -1061,15 +1073,15 @@ def generate_contact_html(contact_data, email):
 
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-                            <i class="fas fa-globe text-white"></i>
+                        <div class="w-10 h-10 bg-regis-light-blue rounded-lg flex items-center justify-center">
+                            <i class="fas fa-globe text-regis-blue"></i>
                         </div>
                     </div>
                     <div class="ml-4">
                         <p class="font-semibold">Portfolio</p>
                         <a href="{contact_data.get('portfolio', '#')}" 
                            target="_blank"
-                           class="text-primary hover:underline">
+                           class="text-regis-blue hover:underline">
                             {"Personal Website" if contact_data.get('portfolio', '#') != '#' else "Add portfolio in profile.md"}
                         </a>
                     </div>
@@ -1078,18 +1090,18 @@ def generate_contact_html(contact_data, email):
         </div>
 
         <!-- Quick Message Card -->
-        <div class="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+        <div class="bg-gradient-to-br from-regis-light-blue/20 to-regis-gold/20 p-6 rounded-lg border border-regis-light-blue">
             <h3 class="text-xl font-semibold mb-4">Send a Message</h3>
             <p class="text-gray-700 mb-4">
                 Feel free to reach out for collaboration opportunities, questions about my projects, 
                 or just to connect!
             </p>
             <a href="mailto:{email}?subject=Hello%20from%20your%20portfolio" 
-               class="block w-full bg-primary text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-800 transition duration-300">
+               class="block w-full bg-regis-blue text-white text-center py-3 rounded-lg font-semibold hover:bg-regis-blue/80 transition duration-300">
                 <i class="fas fa-paper-plane mr-2"></i> Send Email
             </a>
             
-            <div class="mt-6 pt-6 border-t border-blue-200">
+            <div class="mt-6 pt-6 border-t border-regis-light-blue">
                 <p class="text-sm text-gray-600 text-center mb-3">Connect on social media:</p>
                 <div class="flex justify-center space-x-4">
                     <a href="{contact_data.get('github', '#')}" 
@@ -1099,7 +1111,7 @@ def generate_contact_html(contact_data, email):
                     </a>
                     <a href="{contact_data.get('linkedin', '#')}" 
                        target="_blank"
-                       class="w-10 h-10 bg-blue-700 text-white rounded-full flex items-center justify-center hover:bg-blue-800 transition">
+                       class="w-10 h-10 bg-regis-blue text-white rounded-full flex items-center justify-center hover:bg-regis-blue/80 transition">
                         <i class="fab fa-linkedin"></i>
                     </a>
                     <a href="mailto:{email}" 
@@ -1373,15 +1385,15 @@ def generate_enhanced_project_html(project_content, project_title, course_info, 
         
         if project_urls.get('presentation'):
             links_html += f'''
-            <a href="{project_urls['presentation']}" target="_blank"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300">
+            <a href="{project_urls['presentation']}" 
+               class="inline-flex items-center px-4 py-2 bg-regis-blue text-white rounded-lg hover:bg-regis-blue/80 transition duration-300">
                 <i class="fas fa-presentation-screen mr-2"></i> Presentation
             </a>
             '''
         
         if project_urls.get('report'):
             links_html += f'''
-            <a href="{project_urls['report']}" target="_blank"
+            <a href="{project_urls['report']}" 
                class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300">
                 <i class="fas fa-file-pdf mr-2"></i> Project Report
             </a>
@@ -1392,9 +1404,9 @@ def generate_enhanced_project_html(project_content, project_title, course_info, 
     # Generate course badge
     course_badge = ''
     if course_info['is_practicum_1']:
-        course_badge = '<span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">MSDS 692</span>'
+        course_badge = '<span class="inline-block bg-regis-light-blue text-regis-blue text-xs font-semibold px-2.5 py-0.5 rounded-full">MSDS 692</span>'
     else:
-        course_badge = '<span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">MSDS 696</span>'
+        course_badge = '<span class="inline-block bg-regis-gold/30 text-regis-blue text-xs font-semibold px-2.5 py-0.5 rounded-full">MSDS 696</span>'
     
     return f'''
     <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition duration-300">

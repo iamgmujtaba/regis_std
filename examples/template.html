@@ -18,14 +18,28 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Georgia:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#1e40af',
-                        secondary: '#7c3aed',
-                        accent: '#06b6d4',
+                        'regis-blue': '#002B49',
+                        'regis-gold': '#F1C400',
+                        'regis-light-blue': '#CCE2EE',
+                        'regis-gold-accent': '#EDAB00',
+                        'regis-gray': '#D6D2C4',
+                        primary: '#002B49',
+                        secondary: '#F1C400',
+                        accent: '#CCE2EE',
+                    },
+                    fontFamily: {
+                        'sans': ['Open Sans', 'system-ui', 'sans-serif'],
+                        'serif': ['Georgia', 'serif'],
                     }
                 }
             }
@@ -38,19 +52,19 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <i class="fas fa-user-graduate text-primary text-2xl mr-3"></i>
-                    <span class="font-bold text-xl text-gray-800">My Portfolio</span>
+                    <i class="fas fa-user-graduate text-regis-blue text-2xl mr-3"></i>
+                    <span class="font-bold text-lg text-regis-blue">My Portfolio</span>
                 </div>
                 <div class="hidden md:flex space-x-6">
-                    <a href="../index.html" class="text-gray-700 hover:text-primary transition duration-300">
+                    <a href="../index.html" class="text-gray-700 hover:text-regis-blue transition duration-300">
                         <i class="fas fa-home mr-1"></i> Home
                     </a>
-                    <a href="#about" class="text-gray-700 hover:text-primary transition duration-300">About</a>
-                    <a href="#projects" class="text-gray-700 hover:text-primary transition duration-300">Projects</a>
-                    <a href="#contact" class="text-gray-700 hover:text-primary transition duration-300">Contact</a>
+                    <a href="#about" class="text-gray-700 hover:text-regis-blue transition duration-300">About</a>
+                    <a href="#projects" class="text-gray-700 hover:text-regis-blue transition duration-300">Projects</a>
+                    <a href="#contact" class="text-gray-700 hover:text-regis-blue transition duration-300">Contact</a>
                 </div>
                 <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-gray-700 hover:text-primary">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-regis-blue">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
@@ -70,7 +84,7 @@
     </nav>
 
     <!-- Hero/Profile Section -->
-    <section class="bg-gradient-to-r from-primary to-secondary py-16">
+    <section class="bg-gradient-to-r from-regis-blue to-regis-gold py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row items-center justify-center gap-8">
                 <!-- Profile Photo -->
@@ -92,21 +106,20 @@
                     <div class="flex justify-center md:justify-start space-x-4 mb-4">
                         <a href="https://github.com/yourusername" 
                            target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300">
                             <i class="fab fa-github text-xl"></i>
                         </a>
                         <a href="https://linkedin.com/in/yourprofile" 
                            target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300">
                             <i class="fab fa-linkedin text-xl"></i>
                         </a>
                         <a href="mailto:your.email@university.edu" 
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300">
                             <i class="fas fa-envelope text-xl"></i>
                         </a>
                         <a href="../assets/pdf/your-cv.pdf" 
-                           target="_blank"
-                           class="w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center hover:bg-blue-50 transition duration-300">
+                           class="w-10 h-10 bg-white text-regis-blue rounded-full flex items-center justify-center hover:bg-regis-light-blue transition duration-300">
                             <i class="fas fa-file-pdf text-xl"></i>
                         </a>
                     </div>
@@ -114,12 +127,11 @@
                     <!-- Quick Links -->
                     <div class="flex flex-wrap justify-center md:justify-start gap-3">
                         <a href="../assets/pdf/your-cv.pdf" 
-                           target="_blank"
-                           class="bg-white text-primary px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition duration-300 inline-flex items-center">
+                           class="bg-white text-regis-blue px-4 py-2 rounded-lg font-semibold hover:bg-regis-light-blue transition duration-300 inline-flex items-center">
                             <i class="fas fa-download mr-2"></i> Download CV
                         </a>
                         <a href="#contact" 
-                           class="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-primary transition duration-300 inline-flex items-center">
+                           class="bg-transparent border-2 border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-regis-blue transition duration-300 inline-flex items-center">
                             <i class="fas fa-paper-plane mr-2"></i> Contact Me
                         </a>
                     </div>
@@ -132,7 +144,7 @@
     <section id="about" class="py-16 bg-white">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 text-center">About Me</h2>
-            <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+            <div class="w-20 h-1 bg-regis-blue mx-auto mb-8"></div>
             
             <div class="prose prose-lg max-w-none text-gray-700">
                 <p class="text-lg leading-relaxed mb-4">
@@ -157,23 +169,23 @@
             <div class="mt-12">
                 <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">Technical Skills</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-center border border-blue-200">
-                        <i class="fas fa-code text-primary text-3xl mb-2"></i>
+                    <div class="bg-gradient-to-br from-regis-blue/10 to-regis-blue/20 p-4 rounded-lg text-center border border-regis-blue/30">
+                        <i class="fas fa-code text-regis-blue text-3xl mb-2"></i>
                         <p class="font-semibold">Programming</p>
                         <p class="text-sm text-gray-600">Python, Java, C++</p>
                     </div>
-                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-center border border-green-200">
-                        <i class="fas fa-laptop-code text-green-600 text-3xl mb-2"></i>
+                    <div class="bg-gradient-to-br from-regis-gold/10 to-regis-gold/20 p-4 rounded-lg text-center border border-regis-gold/30">
+                        <i class="fas fa-laptop-code text-regis-gold-accent text-3xl mb-2"></i>
                         <p class="font-semibold">Web Dev</p>
                         <p class="text-sm text-gray-600">HTML, CSS, JavaScript</p>
                     </div>
-                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-center border border-purple-200">
-                        <i class="fas fa-database text-purple-600 text-3xl mb-2"></i>
+                    <div class="bg-gradient-to-br from-regis-gray/20 to-regis-gray/30 p-4 rounded-lg text-center border border-regis-gray">
+                        <i class="fas fa-database text-gray-700 text-3xl mb-2"></i>
                         <p class="font-semibold">Databases</p>
                         <p class="text-sm text-gray-600">SQL, MongoDB</p>
                     </div>
-                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg text-center border border-orange-200">
-                        <i class="fas fa-brain text-orange-600 text-3xl mb-2"></i>
+                    <div class="bg-gradient-to-br from-regis-light-blue/20 to-regis-light-blue/30 p-4 rounded-lg text-center border border-regis-light-blue">
+                        <i class="fas fa-brain text-regis-blue text-3xl mb-2"></i>
                         <p class="font-semibold">AI/ML</p>
                         <p class="text-sm text-gray-600">TensorFlow, Scikit-learn</p>
                     </div>
@@ -190,7 +202,7 @@
 
             <!-- Practicum I Project -->
             <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 border border-gray-200 hover:shadow-xl transition duration-300">
-                <div class="bg-gradient-to-r from-primary to-blue-600 px-6 py-4">
+                <div class="bg-gradient-to-r from-regis-blue to-regis-blue px-6 py-4">
                     <h3 class="text-2xl font-bold text-white flex items-center">
                         <i class="fas fa-project-diagram mr-3"></i>
                         Practicum I Project
@@ -236,19 +248,17 @@
                             <i class="fab fa-github mr-2"></i> View Code
                         </a>
                         <a href="../assets/pdf/practicum1-report.pdf" 
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-800 transition duration-300">
+                           class="inline-flex items-center px-4 py-2 bg-regis-blue text-white rounded-lg hover:bg-regis-blue/80 transition duration-300">
                             <i class="fas fa-file-pdf mr-2"></i> Read Report
                         </a>
                         <a href="../assets/pdf/practicum1-presentation.pdf" 
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-800 transition duration-300">
+                           class="inline-flex items-center px-4 py-2 bg-regis-gold text-white rounded-lg hover:bg-regis-gold-accent transition duration-300">
                             <i class="fas fa-presentation mr-2"></i> View Slides
                         </a>
-                        <a href="https://demo-link.com" 
+                        <a href="https://yourblog.com/practicum1" 
                            target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-accent text-white rounded-lg hover:bg-cyan-700 transition duration-300">
-                            <i class="fas fa-external-link-alt mr-2"></i> Live Demo
+                           class="inline-flex items-center px-4 py-2 bg-regis-light-blue text-regis-blue rounded-lg hover:bg-regis-light-blue/80 transition duration-300">
+                            <i class="fas fa-blog mr-2"></i> Project Blog
                         </a>
                     </div>
                 </div>
@@ -256,7 +266,7 @@
 
             <!-- Practicum II Project -->
             <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition duration-300">
-                <div class="bg-gradient-to-r from-secondary to-purple-600 px-6 py-4">
+                <div class="bg-gradient-to-r from-regis-gold to-regis-gold-accent px-6 py-4">
                     <h3 class="text-2xl font-bold text-white flex items-center">
                         <i class="fas fa-rocket mr-3"></i>
                         Practicum II Project
@@ -302,19 +312,22 @@
                             <i class="fab fa-github mr-2"></i> View Code
                         </a>
                         <a href="../assets/pdf/practicum2-report.pdf" 
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-800 transition duration-300">
+                           class="inline-flex items-center px-4 py-2 bg-regis-blue text-white rounded-lg hover:bg-regis-blue/80 transition duration-300">
                             <i class="fas fa-file-pdf mr-2"></i> Read Report
                         </a>
                         <a href="../assets/pdf/practicum2-presentation.pdf" 
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-purple-800 transition duration-300">
+                           class="inline-flex items-center px-4 py-2 bg-regis-gold text-white rounded-lg hover:bg-regis-gold-accent transition duration-300">
                             <i class="fas fa-presentation mr-2"></i> View Slides
                         </a>
-                        <a href="https://yourblog.com" 
+                        <a href="https://yourblog.com/practicum2" 
                            target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300">
+                           class="inline-flex items-center px-4 py-2 bg-regis-light-blue text-regis-blue rounded-lg hover:bg-regis-light-blue/80 transition duration-300">
                             <i class="fas fa-blog mr-2"></i> Project Blog
+                        </a>
+                        <a href="https://additional-materials.com" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-regis-gray text-gray-800 rounded-lg hover:bg-regis-gray/80 transition duration-300">
+                            <i class="fas fa-folder-open mr-2"></i> Additional Materials
                         </a>
                     </div>
                 </div>
@@ -335,13 +348,13 @@
                     <div class="space-y-4">
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
-                                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                                <div class="w-10 h-10 bg-regis-blue rounded-lg flex items-center justify-center">
                                     <i class="fas fa-envelope text-white"></i>
                                 </div>
                             </div>
                             <div class="ml-4">
                                 <p class="font-semibold">Email</p>
-                                <a href="mailto:your.email@university.edu" class="text-primary hover:underline">
+                                <a href="mailto:your.email@university.edu" class="text-regis-blue hover:underline">
                                     your.email@university.edu
                                 </a>
                             </div>
@@ -349,7 +362,7 @@
 
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
-                                <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+                                <div class="w-10 h-10 bg-regis-gold rounded-lg flex items-center justify-center">
                                     <i class="fab fa-linkedin text-white"></i>
                                 </div>
                             </div>
@@ -357,7 +370,7 @@
                                 <p class="font-semibold">LinkedIn</p>
                                 <a href="https://linkedin.com/in/yourprofile" 
                                    target="_blank"
-                                   class="text-primary hover:underline">
+                                   class="text-regis-blue hover:underline">
                                     linkedin.com/in/yourprofile
                                 </a>
                             </div>
@@ -365,7 +378,7 @@
 
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
-                                <div class="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                                <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
                                     <i class="fab fa-github text-white"></i>
                                 </div>
                             </div>
@@ -373,7 +386,7 @@
                                 <p class="font-semibold">GitHub</p>
                                 <a href="https://github.com/yourusername" 
                                    target="_blank"
-                                   class="text-primary hover:underline">
+                                   class="text-regis-blue hover:underline">
                                     github.com/yourusername
                                 </a>
                             </div>
@@ -381,8 +394,8 @@
 
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
-                                <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-map-marker-alt text-white"></i>
+                                <div class="w-10 h-10 bg-regis-light-blue rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-map-marker-alt text-regis-blue"></i>
                                 </div>
                             </div>
                             <div class="ml-4">
@@ -394,18 +407,18 @@
                 </div>
 
                 <!-- Quick Message Card -->
-                <div class="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+                <div class="bg-gradient-to-br from-regis-light-blue/20 to-regis-blue/10 p-6 rounded-lg border border-regis-light-blue">
                     <h3 class="text-xl font-semibold mb-4">Send a Message</h3>
                     <p class="text-gray-700 mb-4">
                         Feel free to reach out for collaboration opportunities, questions about my projects, 
                         or just to connect!
                     </p>
                     <a href="mailto:your.email@university.edu?subject=Hello%20from%20your%20portfolio" 
-                       class="block w-full bg-primary text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-800 transition duration-300">
+                       class="block w-full bg-regis-blue text-white text-center py-3 rounded-lg font-semibold hover:bg-regis-blue/80 transition duration-300">
                         <i class="fas fa-paper-plane mr-2"></i> Send Email
                     </a>
                     
-                    <div class="mt-6 pt-6 border-t border-blue-200">
+                    <div class="mt-6 pt-6 border-t border-regis-light-blue">
                         <p class="text-sm text-gray-600 text-center mb-3">Connect on social media:</p>
                         <div class="flex justify-center space-x-4">
                             <a href="https://github.com/yourusername" 
